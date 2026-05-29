@@ -2,43 +2,44 @@ import { generateObject } from "ai"
 import { google } from "@ai-sdk/google"
 import { z } from "zod"
 
-const SummarySchema = z.object({
-  summary:    z.string().describe("Ringkasan 3-5 kalimat padat"),
-  keyPoints:  z.array(z.string()).describe("3-5 poin utama"),
-  category:   z.enum(["teknologi", "bisnis", "kesehatan",
-                      "politik", "sains", "olahraga", "hiburan", "lainnya"]),
-  sentiment:  z.enum(["positif", "negatif", "netral"]),
-  readingTime: z.number().describe("Estimasi menit baca teks asli"),
+export const SummarySchema = z.object({
+  summary:     z.string().describe("A concise summary of the text"),
+  keyPoints:   z.array(z.string()).describe("3-5 key points from the text"),
+  category:    z.enum(["technology", "business", "health",
+                        "politics", "science", "sports", "entertainment", "other"]),
+  sentiment:   z.enum(["positive", "negative", "neutral"]),
+  readingTime: z.number().describe("Estimated reading time in minutes for the original text"),
 })
+
+const LENGTH_MAP: Record<string, string> = {
+  short:    "2-3 very concise sentences",
+  medium:   "4-5 informative sentences",
+  detailed: "6-8 comprehensive sentences",
+}
 
 export async function POST(req: Request) {
   const { text, length } = await req.json()
 
   if (!text || text.trim().length < 50) {
     return Response.json(
-      { error: "Teks terlalu pendek (min. 50 karakter)" },
+      { error: "Text is too short (min. 50 characters)" },
       { status: 400 }
     )
   }
 
-  const lengthMap: Record<string, string> = {
-    pendek:  "2-3 kalimat sangat ringkas",
-    sedang:  "4-5 kalimat informatif",
-    detail:  "6-8 kalimat komprehensif",
-  }
-  const lengthGuide = lengthMap[length as string] ?? lengthMap["sedang"]
+  const lengthGuide = LENGTH_MAP[length as string] ?? LENGTH_MAP["medium"]
 
   const { object } = await generateObject({
     model: google("gemini-2.5-flash"),
     schema: SummarySchema,
-    prompt: `Analisis teks berikut dan berikan:
-- Ringkasan: ${lengthGuide}
-- Key points: poin-poin terpenting
-- Kategori topik yang paling sesuai
-- Sentimen keseluruhan teks
-- Estimasi waktu baca (asumsikan 200 kata/menit)
+    prompt: `Analyze the following text and provide:
+- Summary: ${lengthGuide}
+- Key points: the most important points
+- The most fitting topic category
+- Overall sentiment of the text
+- Estimated reading time (assume 200 words/minute)
 
-Teks:
+Text:
 ${text.slice(0, 8000)}`,
   })
 
