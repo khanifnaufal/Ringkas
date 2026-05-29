@@ -16,7 +16,9 @@ export function LengthSelector({ value, onChange, wordCount }: LengthSelectorPro
         {LENGTH_OPTIONS.map((l) => (
           <button
             key={l}
+            type="button"
             onClick={() => onChange(l)}
+            aria-pressed={value === l}
             className={`text-sm px-4 py-1.5 rounded-full border transition-all duration-200 font-medium
               ${value === l
                 ? "bg-primary text-primary-foreground border-primary shadow-sm"
