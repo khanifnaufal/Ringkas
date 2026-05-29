@@ -29,7 +29,6 @@ export function ResultCard({ data, className }: ResultCardProps) {
       setCopied(false)
     }
   }
-  }
 
   return (
     <div className={`border rounded-xl p-5 space-y-4 ${className ?? ""}`}>

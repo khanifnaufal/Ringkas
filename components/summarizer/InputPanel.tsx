@@ -61,7 +61,6 @@ export function InputPanel({
           {error}
         </div>
       )}
-      )}
     </div>
   )
 }
