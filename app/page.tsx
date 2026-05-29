@@ -1,65 +1,84 @@
-import Image from "next/image";
+"use client"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import Image from "next/image"
+import { Textarea } from "@/components/ui/textarea"
+import { SummaryResult } from "@/components/summary-result"
 
 export default function Home() {
+  const [text, setText]       = useState("")
+  const [length, setLength]   = useState("sedang")
+  const [result, setResult]   = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError]     = useState("")
+
+  async function handleSubmit() {
+    if (!text.trim()) return
+    setLoading(true); setError(""); setResult(null)
+    try {
+      const res = await fetch("/api/summarize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, length }),
+      })
+      if (!res.ok) throw new Error((await res.json()).error)
+      setResult(await res.json())
+    } catch (e: any) {
+      setError(e.message ?? "Terjadi error, coba lagi")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main className="max-w-2xl mx-auto px-4 py-12">
+      <div className="flex items-center gap-3 mb-2">
+        <Image src="/logo.svg" alt="Ringkas Logo" width={32} height={32} />
+        <h1 className="text-2xl font-semibold">Ringkas</h1>
+      </div>
+      <p className="text-sm text-muted-foreground mb-6">
+        Paste teks apapun — artikel, email, laporan
+      </p>
+
+      <Textarea
+        placeholder="Paste teks di sini..."
+        className="min-h-[200px] mb-3"
+        value={text}
+        onChange={e => setText(e.target.value)}
+      />
+
+      <div className="flex items-center gap-3 mb-6">
+        {["pendek", "sedang", "detail"].map(l => (
+          <button
+            key={l}
+            onClick={() => setLength(l)}
+            className={`text-sm px-3 py-1 rounded-full border transition-colors 
+              ${length === l
+                ? "bg-primary text-primary-foreground border-primary"
+                : "border-border text-muted-foreground hover:bg-muted"
+              }`}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+            {l}
+          </button>
+        ))}
+        <span className="text-xs text-muted-foreground ml-auto">
+          {text.trim().split(/\s+/).filter(Boolean).length} kata
+        </span>
+      </div>
+
+      <Button
+        onClick={handleSubmit}
+        disabled={loading || text.trim().length < 50}
+        className="w-full"
+      >
+        {loading ? "Memproses..." : "Summarize"}
+      </Button>
+
+      {error && (
+        <p className="text-sm text-destructive mt-3">{error}</p>
+      )}
+      {result && <SummaryResult data={result} className="mt-8" />}
+    </main>
+  )
 }

@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ringkas - Intelligent Text Summarizer
 
-## Getting Started
+**Ringkas** is an AI-powered web application designed to intelligently summarize long texts. By leveraging Google's Gemini AI model, Ringkas provides concise summaries, extracts key points, determines categories, analyzes sentiment, and estimates the reading time of the original text.
 
-First, run the development server:
+Currently, Ringkas has completed its **Minimum Viable Product (MVP)** phase, allowing users to paste any text (such as articles, emails, or reports) and receive structured analysis instantly.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Tech Stack
+- **Framework:** Next.js (App Router)
+- **UI & Styling:** Tailwind CSS + shadcn/ui
+- **AI Integration:** Vercel AI SDK (`ai`, `@ai-sdk/google`) with Google Gemini
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Development Roadmap
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Below is the planned roadmap for Ringkas's upcoming features:
 
-## Learn More
+### Phase 2 — This week: Polish & Share
+- **Deploy to Vercel:** Publish the app so it can be shared with others with a single command.
+- **Input Article URL:** Allow users to paste a URL so the app can automatically fetch and summarize the content.
+- **Share Results:** Generate unique links for each summary that can be easily shared.
+- **Streaming Output:** Stream the summary text progressively, so users don't have to wait for the entire process to finish before reading.
 
-To learn more about Next.js, take a look at the following resources:
+### Phase 3 — Next week: Users & History
+- **Auth with Clerk:** Implement Google/GitHub login and save summary history per user.
+- **Summary History:** A dedicated dashboard to view and search all previously generated summaries.
+- **Upload PDF:** Drag and drop PDF files for immediate summarization.
+- **Collections:** Organize summaries into folders based on topics or specific projects.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Phase 4 — Next month: Smarter AI
+- **Chat with Text:** Allow users to ask specific questions about the original text after the summary is generated.
+- **Bulk Summarize:** Input 5-10 URLs at once and view the summaries on a single page.
+- **Compare Articles:** Summarize two texts simultaneously to highlight their similarities and differences.
+- **Multi-language Support:** Summarize content in a preferred language, rather than being limited to just one language.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Phase 5 — Taking it seriously: SaaS Transition
+- **Public API:** Provide developers with API key access to use Ringkas programmatically.
+- **Billing & Plans:** Implement a payment system using Stripe (limited Free tier, unlimited Pro tier).
+- **Browser Extension:** A browser extension that allows users to instantly summarize the web page they are currently viewing.
+- **Slack / Telegram Bot:** A dedicated bot where users can paste URLs in chats, and the bot immediately replies with the summary.
