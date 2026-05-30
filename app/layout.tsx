@@ -4,6 +4,8 @@ import "./globals.css";
 import { cn } from "@/lib/utils";
 import { ConvexClientProvider } from "@/components/providers/ConvexClientProvider";
 
+import { Toaster } from "sonner";
+
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 const geistSans = Geist({
@@ -41,6 +43,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         <ConvexClientProvider>
           {children}
+          <Toaster richColors closeButton position="top-center" />
         </ConvexClientProvider>
       </body>
     </html>
