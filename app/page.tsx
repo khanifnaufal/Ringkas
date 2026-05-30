@@ -40,7 +40,6 @@ export default function Home() {
           <div className="lg:col-span-3 w-full">
             <CollectionsSidebar
               onSelectSummary={handleSelectSummary}
-              onNewSummary={handleNewSummary}
               activeSummaryId={activeSummaryId}
             />
           </div>
@@ -68,7 +67,11 @@ export default function Home() {
 
           {/* ── 3. Result Panel (5/12 columns) ─────────────────────────────── */}
           <div className="lg:col-span-5 w-full min-w-0">
-            <ResultPanel result={summarizer.result} loading={summarizer.loading} />
+            <ResultPanel
+              result={summarizer.result}
+              loading={summarizer.loading}
+              onNewSummary={handleNewSummary}
+            />
           </div>
         </div>
       </main>

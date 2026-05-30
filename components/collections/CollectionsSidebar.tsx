@@ -41,13 +41,11 @@ interface Summary {
 
 interface CollectionsSidebarProps {
   onSelectSummary: (summary: Summary) => void
-  onNewSummary: () => void
   activeSummaryId?: string
 }
 
 export function CollectionsSidebar({
   onSelectSummary,
-  onNewSummary,
   activeSummaryId
 }: CollectionsSidebarProps) {
   const { isLoading, isAuthenticated } = useConvexAuth()
@@ -173,25 +171,7 @@ export function CollectionsSidebar({
           <Layers className="w-4 h-4 text-primary" />
           <span className="font-semibold text-sm tracking-tight text-foreground">Koleksi Saya</span>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onNewSummary}
-          title="Tulis Ringkasan Baru"
-          className="h-7 w-7 rounded-lg text-primary hover:text-primary hover:bg-primary/10"
-        >
-          <Sparkles className="w-4 h-4" />
-        </Button>
       </div>
-
-      {/* New Summary CTA */}
-      <Button
-        onClick={onNewSummary}
-        className="w-full mt-3 justify-start font-medium text-xs h-9 bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 shadow-none transition-all"
-      >
-        <Plus className="w-4 h-4 mr-2" />
-        Ringkas Baru
-      </Button>
 
       {/* Inline Form to Create Collection */}
       {isCreating ? (

@@ -1,9 +1,12 @@
 import { SummaryResult } from "@/types/summary"
 import { ResultCard } from "@/components/summarizer/ResultCard"
+import { Button } from "@/components/ui/button"
+import { Plus } from "lucide-react"
 
 interface ResultPanelProps {
   result: SummaryResult | null
   loading: boolean
+  onNewSummary: () => void
 }
 
 const EmptyState = () => (
@@ -69,13 +72,23 @@ const LoadingSkeleton = () => (
   </div>
 )
 
-export function ResultPanel({ result, loading }: ResultPanelProps) {
+export function ResultPanel({ result, loading, onNewSummary }: ResultPanelProps) {
   return (
-    <div className="flex flex-col w-full h-full lg:sticky lg:top-8">
+    <div className="flex flex-col w-full h-full lg:sticky lg:top-8 gap-4">
       {loading ? (
         <LoadingSkeleton />
       ) : result ? (
-        <ResultCard data={result} className="shadow-md bg-card" />
+        <div className="flex flex-col gap-3.5 w-full">
+          <ResultCard data={result} className="shadow-md bg-card" />
+          <Button
+            onClick={onNewSummary}
+            variant="outline"
+            className="w-full text-xs font-semibold h-10 border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 transition-all shadow-sm"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Mulai Ringkasan Baru
+          </Button>
+        </div>
       ) : (
         <EmptyState />
       )}
