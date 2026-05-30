@@ -36,6 +36,7 @@ export interface SummaryResult {
   readingTime: number
   /** Tersedia saat mode PDF */
   pdfMeta?: PdfMeta
+  originalText?: string
 }
 
 export interface SummarizeRequest {

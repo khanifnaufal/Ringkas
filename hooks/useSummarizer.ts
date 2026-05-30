@@ -26,6 +26,7 @@ interface UseSummarizerReturn {
   length: SummaryLength
   setLength: (v: SummaryLength) => void
   result: SummaryResult | null
+  setResult: (v: SummaryResult | null) => void
   loading: boolean
   error: string
   canSubmit: boolean
@@ -92,6 +93,7 @@ export function useSummarizer(): UseSummarizerReturn {
 
       setResult({
         ...data,
+        originalText: mode === "pdf" ? pdfText : text,
         pdfMeta: mode === "pdf" ? pdfMeta ?? undefined : undefined,
       })
     } catch (e: unknown) {
@@ -106,7 +108,7 @@ export function useSummarizer(): UseSummarizerReturn {
     text, setText, wordCount,
     pdfFile, pdfMeta, pdfText, setPdfData, clearPdf,
     length, setLength,
-    result, loading, error,
+    result, setResult, loading, error,
     canSubmit, handleSubmit,
   }
 }

@@ -1,8 +1,10 @@
 "use client"
 
-import { SignIn } from "@clerk/nextjs"
+import { SignIn, useUser } from "@clerk/nextjs"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 const clerkAppearance = {
   layout: {
@@ -76,6 +78,19 @@ const clerkAppearance = {
 }
 
 export default function SignInPage() {
+  const { isSignedIn, isLoaded } = useUser()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      router.push("/")
+    }
+  }, [isLoaded, isSignedIn, router])
+
+  if (!isLoaded || isSignedIn) {
+    return null
+  }
+
   return (
     <div className="min-h-screen bg-background flex">
       {/* Left decorative panel */}

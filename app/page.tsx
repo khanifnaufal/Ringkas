@@ -1,23 +1,52 @@
 "use client"
 
+import { useState } from "react"
 import { useSummarizer } from "@/hooks/useSummarizer"
 import { AppHeader } from "@/components/layout/AppHeader"
 import { InputPanel } from "@/components/summarizer/InputPanel"
 import { ResultPanel } from "@/components/summarizer/ResultPanel"
 import { Navbar } from "@/components/layout/Navbar"
+import { CollectionsSidebar } from "@/components/collections/CollectionsSidebar"
 
 export default function Home() {
   const summarizer = useSummarizer()
+  const [activeSummaryId, setActiveSummaryId] = useState<string | undefined>(undefined)
+
+  const handleSelectSummary = (summary: any) => {
+    setActiveSummaryId(summary._id)
+    summarizer.setResult(summary)
+  };
+
+  const handleNewSummary = () => {
+    setActiveSummaryId(undefined)
+    summarizer.setResult(null)
+    summarizer.setText("")
+    summarizer.clearPdf()
+  };
+
+  const handleSubmit = async () => {
+    setActiveSummaryId(undefined)
+    await summarizer.handleSubmit()
+  };
 
   return (
     <>
       <Navbar />
-      <main className="max-w-4xl lg:max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-10 md:py-16 lg:py-24 w-full">
+      <main className="max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-10 md:py-16 lg:py-20 w-full">
         <AppHeader />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start w-full">
-          {/* min-w-0 mencegah grid column collapse karena intrinsic content width */}
-          <div className="w-full min-w-0">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start w-full">
+          {/* ── 1. Collections Sidebar (3/12 columns) ──────────────────────── */}
+          <div className="lg:col-span-3 w-full">
+            <CollectionsSidebar
+              onSelectSummary={handleSelectSummary}
+              onNewSummary={handleNewSummary}
+              activeSummaryId={activeSummaryId}
+            />
+          </div>
+
+          {/* ── 2. Input Panel (4/12 columns) ──────────────────────────────── */}
+          <div className="lg:col-span-4 w-full min-w-0">
             <InputPanel
               mode={summarizer.mode}
               onModeChange={summarizer.setMode}
@@ -33,11 +62,12 @@ export default function Home() {
               loading={summarizer.loading}
               canSubmit={summarizer.canSubmit}
               error={summarizer.error}
-              onSubmit={summarizer.handleSubmit}
+              onSubmit={handleSubmit}
             />
           </div>
 
-          <div className="w-full min-w-0">
+          {/* ── 3. Result Panel (5/12 columns) ─────────────────────────────── */}
+          <div className="lg:col-span-5 w-full min-w-0">
             <ResultPanel result={summarizer.result} loading={summarizer.loading} />
           </div>
         </div>

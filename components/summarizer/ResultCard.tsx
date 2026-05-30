@@ -11,11 +11,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Share2, Copy, FileText } from "lucide-react"
+import {
+  Share2,
+  Copy,
+  FileText,
+  Bookmark,
+  Check,
+  Lock,
+  Inbox,
+  Loader2,
+  FolderOpen
+} from "lucide-react"
 import { useTypewriter } from "@/hooks/useTypewriter"
+import { useConvexAuth, useQuery, useMutation } from "convex/react"
+import { api } from "@/convex/_generated/api"
+import { SignInButton } from "@clerk/nextjs"
 
 interface ResultCardProps {
-  data: SummaryResult
+  data: SummaryResult & { _id?: string; collectionId?: string; originalText?: string }
   className?: string
 }
 
@@ -38,14 +51,26 @@ const TelegramIcon = () => (
 )
 
 export function ResultCard({ data, className }: ResultCardProps) {
+  const { isLoading, isAuthenticated } = useConvexAuth()
+  const collections = useQuery(api.collections.list)
+  const saveSummary = useMutation(api.summaries.save)
+  const moveSummary = useMutation(api.summaries.move)
+
   const [copied, setCopied] = useState(false)
   const [revealCount, setRevealCount] = useState(0)
 
+  // Saving states
+  const [savedId, setSavedId] = useState<string | null>(null)
+  const [localSavedCollectionId, setLocalSavedCollectionId] = useState<string | null | undefined>(undefined)
+  const [saveLoading, setSaveLoading] = useState(false)
+
   const { displayed, isDone } = useTypewriter(data.summary, { speed: 14 })
 
-  // Reset key-point reveal counter whenever new data arrives
+  // Reset key-point reveal counter and save states whenever new data arrives
   useEffect(() => {
     setRevealCount(0)
+    setSavedId(null)
+    setLocalSavedCollectionId(undefined)
   }, [data.summary])
 
   // Stagger-reveal key points one by one after typewriter finishes
@@ -94,13 +119,59 @@ export function ResultCard({ data, className }: ResultCardProps) {
     if (url) window.open(url, "_blank", "noopener,noreferrer")
   }
 
+  const summaryId = data._id || savedId
+  const isSaved = !!summaryId
+
+  const currentCollectionId = localSavedCollectionId !== undefined
+    ? localSavedCollectionId
+    : data.collectionId
+
+  const currentCollection = collections?.find(c => c._id === currentCollectionId)
+  const folderName = currentCollectionId === "uncategorized" || !currentCollectionId
+    ? "Tanpa Kategori"
+    : currentCollection?.name || "Folder"
+
+  const handleSave = async (colId: string) => {
+    setSaveLoading(true)
+    try {
+      const selectedColId = colId === "uncategorized" ? undefined : (colId as any)
+
+      if (isSaved && summaryId) {
+        // Move existing summary
+        await moveSummary({
+          id: summaryId as any,
+          collectionId: selectedColId,
+        })
+        setLocalSavedCollectionId(colId)
+      } else {
+        // Save new summary
+        const newId = await saveSummary({
+          collectionId: selectedColId,
+          originalText: data.originalText || "",
+          summary: data.summary,
+          keyPoints: data.keyPoints,
+          category: data.category,
+          sentiment: data.sentiment,
+          readingTime: data.readingTime,
+          pdfMeta: data.pdfMeta,
+        })
+        setSavedId(newId)
+        setLocalSavedCollectionId(colId)
+      }
+    } catch (err) {
+      console.error("Gagal menyimpan ringkasan:", err)
+    } finally {
+      setSaveLoading(false)
+    }
+  }
+
   return (
     <div className={`border rounded-xl p-5 flex flex-col gap-4 h-full ${className ?? ""}`}>
       {/* Metadata badges */}
       <div className="flex items-center gap-2 flex-wrap">
         {data.pdfMeta && (
           <Badge variant="secondary" className="gap-1 font-medium">
-            <FileText className="w-3 h-3" />
+            <FileText className="w-3.5 h-3.5" />
             PDF · {data.pdfMeta.pages}p
           </Badge>
         )}
@@ -148,17 +219,17 @@ export function ResultCard({ data, className }: ResultCardProps) {
             variant="outline"
             size="sm"
             onClick={handleCopy}
-            className="flex-1 transition-all"
+            className="flex-1 text-xs transition-all"
           >
-            <Copy className="w-4 h-4 mr-2" />
-            {copied ? "Copied!" : "Copy result"}
+            <Copy className="w-3.5 h-3.5 mr-1.5 shrink-0 text-muted-foreground/80" />
+            {copied ? "Copied!" : "Copy"}
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="sm" className="flex-1 transition-all">
-                <Share2 className="w-4 h-4 mr-2" />
-                Share result
+              <Button variant="outline" size="sm" className="flex-1 text-xs transition-all">
+                <Share2 className="w-3.5 h-3.5 mr-1.5 shrink-0 text-muted-foreground/80" />
+                Share
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-[180px]">
@@ -176,6 +247,73 @@ export function ResultCard({ data, className }: ResultCardProps) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+
+          {/* ── Save to Collection Button ──────────────────────────────────── */}
+          {!isLoading && !isAuthenticated ? (
+            <SignInButton mode="modal">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 text-xs transition-all hover:bg-muted"
+              >
+                <Lock className="w-3.5 h-3.5 mr-1.5 shrink-0 text-muted-foreground/75" />
+                Simpan
+              </Button>
+            </SignInButton>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant={isSaved ? "secondary" : "outline"}
+                  size="sm"
+                  disabled={saveLoading || isLoading}
+                  className={`flex-1 text-xs transition-all truncate ${
+                    isSaved
+                      ? "border border-teal-500/20 bg-teal-500/10 text-teal-800 dark:text-teal-400 hover:bg-teal-500/20"
+                      : ""
+                  }`}
+                >
+                  {saveLoading ? (
+                    <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin shrink-0" />
+                  ) : isSaved ? (
+                    <Check className="w-3.5 h-3.5 mr-1.5 text-teal-600 dark:text-teal-400 shrink-0" />
+                  ) : (
+                    <Bookmark className="w-3.5 h-3.5 mr-1.5 text-muted-foreground/75 shrink-0" />
+                  )}
+                  <span className="truncate">
+                    {isSaved ? folderName : "Simpan"}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[200px]">
+                <div className="px-2.5 py-1.5 text-[10px] uppercase font-bold text-muted-foreground">
+                  {isSaved ? "Pindahkan ke" : "Simpan ke"}
+                </div>
+                <DropdownMenuItem
+                  onClick={() => handleSave("uncategorized")}
+                  className={`cursor-pointer text-xs ${currentCollectionId === "uncategorized" || !currentCollectionId ? "bg-muted font-medium" : ""}`}
+                >
+                  <Inbox className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
+                  Tanpa Kategori
+                </DropdownMenuItem>
+                {collections && collections.length > 0 && (
+                  <>
+                    <div className="h-px bg-border my-1" />
+                    {collections.map((col) => (
+                      <DropdownMenuItem
+                        key={col._id}
+                        onClick={() => handleSave(col._id)}
+                        className={`cursor-pointer text-xs ${currentCollectionId === col._id ? "bg-muted font-medium" : ""}`}
+                      >
+                        <span className="mr-2 text-sm shrink-0">{col.emoji}</span>
+                        <span className="truncate">{col.name}</span>
+                      </DropdownMenuItem>
+                    ))}
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       )}
     </div>
