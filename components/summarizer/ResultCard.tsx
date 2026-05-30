@@ -11,7 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Share2, Copy } from "lucide-react"
+import { Share2, Copy, FileText } from "lucide-react"
 import { useTypewriter } from "@/hooks/useTypewriter"
 
 interface ResultCardProps {
@@ -98,6 +98,12 @@ export function ResultCard({ data, className }: ResultCardProps) {
     <div className={`border rounded-xl p-5 flex flex-col gap-4 h-full ${className ?? ""}`}>
       {/* Metadata badges */}
       <div className="flex items-center gap-2 flex-wrap">
+        {data.pdfMeta && (
+          <Badge variant="secondary" className="gap-1 font-medium">
+            <FileText className="w-3 h-3" />
+            PDF · {data.pdfMeta.pages}p
+          </Badge>
+        )}
         <Badge variant="outline">{data.category}</Badge>
         <span
           className={`text-xs px-2 py-0.5 rounded-full font-medium ${SENTIMENT_COLORS[data.sentiment]}`}
@@ -105,7 +111,7 @@ export function ResultCard({ data, className }: ResultCardProps) {
           {data.sentiment}
         </span>
         <span className="text-xs text-muted-foreground ml-auto">
-          ~{data.readingTime} min read
+          ~{data.readingTime} mnt baca
         </span>
       </div>
 

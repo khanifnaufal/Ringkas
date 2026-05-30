@@ -12,23 +12,34 @@ export default function Home() {
   return (
     <>
       <Navbar />
-      <main className="max-w-4xl lg:max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-10 md:py-16 lg:py-24">
+      <main className="max-w-4xl lg:max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-10 md:py-16 lg:py-24 w-full">
         <AppHeader />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
-          <InputPanel
-            text={summarizer.text}
-            onTextChange={summarizer.setText}
-            length={summarizer.length}
-            onLengthChange={summarizer.setLength}
-            wordCount={summarizer.wordCount}
-            loading={summarizer.loading}
-            canSubmit={summarizer.canSubmit}
-            error={summarizer.error}
-            onSubmit={summarizer.handleSubmit}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start w-full">
+          {/* min-w-0 mencegah grid column collapse karena intrinsic content width */}
+          <div className="w-full min-w-0">
+            <InputPanel
+              mode={summarizer.mode}
+              onModeChange={summarizer.setMode}
+              text={summarizer.text}
+              onTextChange={summarizer.setText}
+              wordCount={summarizer.wordCount}
+              pdfFile={summarizer.pdfFile}
+              pdfMeta={summarizer.pdfMeta}
+              onPdfReady={summarizer.setPdfData}
+              onClearPdf={summarizer.clearPdf}
+              length={summarizer.length}
+              onLengthChange={summarizer.setLength}
+              loading={summarizer.loading}
+              canSubmit={summarizer.canSubmit}
+              error={summarizer.error}
+              onSubmit={summarizer.handleSubmit}
+            />
+          </div>
 
-          <ResultPanel result={summarizer.result} loading={summarizer.loading} />
+          <div className="w-full min-w-0">
+            <ResultPanel result={summarizer.result} loading={summarizer.loading} />
+          </div>
         </div>
       </main>
     </>
