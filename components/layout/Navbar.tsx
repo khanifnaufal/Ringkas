@@ -1,5 +1,6 @@
 import Image from "next/image"
-import { SignInButton, SignUpButton, UserButton } from "@clerk/nextjs"
+import Link from "next/link"
+import { UserButton } from "@clerk/nextjs"
 import { Show } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
 
@@ -25,26 +26,24 @@ export function Navbar() {
           {/* Auth Controls */}
           <div className="flex items-center gap-2">
             <Show when="signed-out">
-              <SignInButton mode="modal">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-sm font-medium"
-                  id="navbar-sign-in-btn"
-                >
-                  Sign In
-                </Button>
-              </SignInButton>
-              <SignUpButton mode="modal">
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="text-sm font-medium"
-                  id="navbar-sign-up-btn"
-                >
-                  Sign Up
-                </Button>
-              </SignUpButton>
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="text-sm font-medium"
+                id="navbar-sign-in-btn"
+              >
+                <Link href="/sign-in">Sign In</Link>
+              </Button>
+              <Button
+                asChild
+                variant="default"
+                size="sm"
+                className="text-sm font-medium"
+                id="navbar-sign-up-btn"
+              >
+                <Link href="/sign-up">Sign Up</Link>
+              </Button>
             </Show>
             <Show when="signed-in">
               <UserButton

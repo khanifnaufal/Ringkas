@@ -25,8 +25,18 @@ import {
 import { useTypewriter } from "@/hooks/useTypewriter"
 import { useConvexAuth, useQuery, useMutation } from "convex/react"
 import { api } from "@/convex/_generated/api"
-import { SignInButton } from "@clerk/nextjs"
+import Link from "next/link"
 import { toast } from "sonner"
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface ResultCardProps {
   data: SummaryResult & { _id?: string; collectionId?: string; originalText?: string }
@@ -100,9 +110,11 @@ export function ResultCard({ data, className }: ResultCardProps) {
     try {
       await navigator.clipboard.writeText(textToShare)
       setCopied(true)
+      toast.success("Rangkuman berhasil disalin ke clipboard!")
       setTimeout(() => setCopied(false), 2000)
     } catch {
       setCopied(false)
+      toast.error("Gagal menyalin rangkuman.")
     }
   }
 
@@ -238,41 +250,80 @@ export function ResultCard({ data, className }: ResultCardProps) {
             {copied ? "Copied!" : "Copy"}
           </Button>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
               <Button variant="outline" size="sm" className="flex-1 text-xs transition-all">
                 <Share2 className="w-3.5 h-3.5 mr-1.5 shrink-0 text-muted-foreground/80" />
                 Share
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[180px]">
-              <DropdownMenuItem onClick={() => handleShare("whatsapp")} className="cursor-pointer">
-                <WhatsAppIcon />
-                WhatsApp
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleShare("twitter")} className="cursor-pointer">
-                <XIcon />
-                Twitter / X
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleShare("telegram")} className="cursor-pointer">
-                <TelegramIcon />
-                Telegram
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="sm:max-w-md">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="flex items-center gap-2">
+                  <Share2 className="w-4 h-4 text-primary" />
+                  Bagikan Rangkuman
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-left">
+                  Pilih platform untuk membagikan ringkasan teks ini atau salin langsung ke clipboard Anda.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="grid grid-cols-2 gap-3 py-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleShare("whatsapp")}
+                  className="flex items-center justify-start gap-2 h-10 w-full hover:bg-emerald-500/10 hover:border-emerald-500/30 hover:text-emerald-600 dark:hover:text-emerald-400"
+                >
+                  <WhatsAppIcon />
+                  WhatsApp
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleShare("twitter")}
+                  className="flex items-center justify-start gap-2 h-10 w-full hover:bg-foreground/10 hover:border-foreground/30 hover:text-foreground"
+                >
+                  <XIcon />
+                  Twitter / X
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleShare("telegram")}
+                  className="flex items-center justify-start gap-2 h-10 w-full hover:bg-sky-500/10 hover:border-sky-500/30 hover:text-sky-600 dark:hover:text-sky-400"
+                >
+                  <TelegramIcon />
+                  Telegram
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopy}
+                  className="flex items-center justify-start gap-2 h-10 w-full hover:bg-primary/10 hover:border-primary/30 hover:text-primary"
+                >
+                  <Copy className="w-4 h-4 text-muted-foreground/85" />
+                  Salin Teks
+                </Button>
+              </div>
+              <AlertDialogFooter className="sm:justify-end mt-2">
+                <AlertDialogCancel>Tutup</AlertDialogCancel>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           {/* ── Save to Collection Button ──────────────────────────────────── */}
           {!isLoading && !isAuthenticated ? (
-            <SignInButton mode="modal">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1 text-xs transition-all hover:bg-muted"
-              >
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="flex-1 text-xs transition-all hover:bg-muted"
+            >
+              <Link href="/sign-in">
                 <Lock className="w-3.5 h-3.5 mr-1.5 shrink-0 text-muted-foreground/75" />
                 Simpan
-              </Button>
-            </SignInButton>
+              </Link>
+            </Button>
           ) : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

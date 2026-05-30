@@ -18,8 +18,9 @@ const clerkAppearance = {
     rootBox: "w-full",
     card: [
       "bg-card border border-border shadow-xl rounded-2xl",
-      "p-0 gap-0 shadow-none",
+      "p-0 gap-0 shadow-none w-full",
     ].join(" "),
+    scrollBox: "w-full overflow-visible",
 
     // Header — hidden, we use our own
     headerTitle: "hidden",
@@ -27,23 +28,23 @@ const clerkAppearance = {
     header: "hidden",
 
     // Social OAuth buttons
-    socialButtonsRoot: "gap-3",
+    socialButtonsRoot: "gap-2",
     socialButtonsBlockButton: [
       "border border-border bg-background text-foreground",
-      "hover:bg-muted transition-all duration-200 rounded-xl h-11",
+      "hover:bg-muted transition-all duration-200 rounded-xl h-10",
       "text-sm font-medium shadow-sm",
     ].join(" "),
     socialButtonsBlockButtonText: "font-medium text-foreground",
 
     // Divider
-    dividerRow: "my-5",
+    dividerRow: "my-3",
     dividerText: "text-muted-foreground text-xs",
     dividerLine: "bg-border",
 
     // Form fields
-    formFieldLabel: "text-sm font-medium text-foreground mb-1.5",
+    formFieldLabel: "text-sm font-medium text-foreground mb-1",
     formFieldInput: [
-      "h-11 rounded-xl border border-border bg-background px-4 text-sm",
+      "h-10 rounded-xl border border-border bg-background px-4 text-sm",
       "text-foreground placeholder:text-muted-foreground",
       "focus:border-primary focus:ring-2 focus:ring-primary/20",
       "transition-all duration-200",
@@ -52,7 +53,7 @@ const clerkAppearance = {
 
     // Primary button
     formButtonPrimary: [
-      "h-11 rounded-xl bg-primary text-primary-foreground",
+      "h-10 rounded-xl bg-primary text-primary-foreground",
       "hover:bg-primary/90 active:scale-[0.98]",
       "font-medium text-sm transition-all duration-200 shadow-sm",
       "w-full mt-1",
@@ -73,7 +74,7 @@ const clerkAppearance = {
     spinner: "text-primary",
 
     // Internal card wrapper
-    cardBox: "p-8 rounded-2xl",
+    cardBox: "p-6 rounded-2xl w-full",
   },
 }
 
@@ -92,10 +93,10 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="h-screen bg-background flex overflow-y-auto lg:overflow-hidden">
       {/* Right: Auth form (on the left side for sign-up — variation) */}
-      <div className="flex flex-1 flex-col items-center justify-center p-6 sm:p-10">
-        <div className="w-full max-w-md">
+      <div className="flex flex-1 flex-col items-center p-4 sm:p-6 overflow-y-auto no-scrollbar h-full">
+        <div className="w-full max-w-md my-auto py-6">
           {/* Mobile logo */}
           <div className="flex lg:hidden items-center gap-2.5 mb-8">
             <Image src="/logo.svg" alt="Ringkas" width={32} height={32} />
@@ -103,7 +104,7 @@ export default function SignUpPage() {
           </div>
 
           {/* Heading */}
-          <div className="mb-8">
+          <div className="mb-5">
             <h1 className="text-2xl font-bold text-foreground mb-2">Buat akun baru</h1>
             <p className="text-muted-foreground text-sm">
               Daftar gratis dan mulai merangkum teks dengan AI
@@ -117,7 +118,7 @@ export default function SignUpPage() {
           />
 
           {/* Custom footer */}
-          <p className="mt-6 text-center text-sm text-muted-foreground">
+          <p className="mt-4 text-center text-sm text-muted-foreground">
             Sudah punya akun?{" "}
             <Link
               href="/sign-in"

@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useQuery, useMutation } from "convex/react"
 import { api } from "@/convex/_generated/api"
-import { SignInButton } from "@clerk/nextjs"
+import Link from "next/link"
 import { useConvexAuth } from "convex/react"
 import {
   Folder,
@@ -191,11 +191,9 @@ export function CollectionsSidebar({
           <p className="text-xs text-muted-foreground max-w-[240px] leading-relaxed mb-5">
             Masuk untuk menyimpan ringkasan Anda secara permanen dan mengaturnya ke dalam berbagai kategori.
           </p>
-          <SignInButton mode="modal">
-            <Button size="sm" className="font-medium shadow-md w-full max-w-[180px] bg-primary text-primary-foreground hover:bg-primary/90 transition-all active:scale-[0.98]">
-              Masuk Sekarang
-            </Button>
-          </SignInButton>
+          <Button asChild size="sm" className="font-medium shadow-md w-full max-w-[180px] bg-primary text-primary-foreground hover:bg-primary/90 transition-all active:scale-[0.98]">
+            <Link href="/sign-in">Masuk Sekarang</Link>
+          </Button>
         </div>
 
         <div className="text-[10px] text-center text-muted-foreground/60">
