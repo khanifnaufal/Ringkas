@@ -16,8 +16,8 @@ export function AppHeader() {
         </h1>
       </div>
       <p className="text-sm md:text-base lg:text-lg text-muted-foreground max-w-xl mx-auto">
-        Paste any text or drop a URL — articles, emails, reports — and let AI
-        summarize it instantly.
+        Paste teks atau upload PDF — artikel, laporan, kontrak — dan biarkan AI
+        merangkumnya dalam sekejap.
       </p>
     </div>
   )

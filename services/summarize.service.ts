@@ -2,7 +2,7 @@ import { SummarizeRequest, SummaryResult } from "@/types/summary"
 
 /**
  * Mengirim request ke API /api/summarize dan mengembalikan hasil ringkasan.
- * Melempar Error jika respons tidak OK.
+ * API menggunakan generateObject sehingga respons adalah plain JSON.
  */
 export async function fetchSummary(
   payload: SummarizeRequest
