@@ -26,6 +26,7 @@ import { useTypewriter } from "@/hooks/useTypewriter"
 import { useConvexAuth, useQuery, useMutation } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { SignInButton } from "@clerk/nextjs"
+import { toast } from "sonner"
 
 interface ResultCardProps {
   data: SummaryResult & { _id?: string; collectionId?: string; originalText?: string }
@@ -56,31 +57,35 @@ export function ResultCard({ data, className }: ResultCardProps) {
   const saveSummary = useMutation(api.summaries.save)
   const moveSummary = useMutation(api.summaries.move)
 
+  const isFromCollection = !!data._id
+  const { displayed: typedText, isDone: typewriteDone } = useTypewriter(data.summary, { speed: 14 })
+
+  const displayed = isFromCollection ? data.summary : typedText
+  const isDone = isFromCollection ? true : typewriteDone
+
   const [copied, setCopied] = useState(false)
-  const [revealCount, setRevealCount] = useState(0)
+  const [revealCount, setRevealCount] = useState(isFromCollection ? data.keyPoints.length : 0)
 
   // Saving states
   const [savedId, setSavedId] = useState<string | null>(null)
   const [localSavedCollectionId, setLocalSavedCollectionId] = useState<string | null | undefined>(undefined)
   const [saveLoading, setSaveLoading] = useState(false)
 
-  const { displayed, isDone } = useTypewriter(data.summary, { speed: 14 })
-
   // Reset key-point reveal counter and save states whenever new data arrives
   useEffect(() => {
-    setRevealCount(0)
+    setRevealCount(isFromCollection ? data.keyPoints.length : 0)
     setSavedId(null)
     setLocalSavedCollectionId(undefined)
-  }, [data.summary])
+  }, [data.summary, isFromCollection, data.keyPoints.length])
 
-  // Stagger-reveal key points one by one after typewriter finishes
+  // Stagger-reveal key points one by one after typewriter finishes (only if not from collection)
   useEffect(() => {
-    if (!isDone) return
+    if (isFromCollection || !isDone) return
     const timers = data.keyPoints.map((_, i) =>
       setTimeout(() => setRevealCount(i + 1), i * 160)
     )
     return () => timers.forEach(clearTimeout)
-  }, [isDone, data.keyPoints])
+  }, [isDone, data.keyPoints, isFromCollection])
 
   const isFullyRevealed = isDone && revealCount >= data.keyPoints.length
 
@@ -100,6 +105,7 @@ export function ResultCard({ data, className }: ResultCardProps) {
       setCopied(false)
     }
   }
+
 
   function handleShare(platform: string) {
     const encodedText = encodeURIComponent(textToShare)
@@ -133,6 +139,11 @@ export function ResultCard({ data, className }: ResultCardProps) {
 
   const handleSave = async (colId: string) => {
     setSaveLoading(true)
+    const targetCollection = collections?.find(c => c._id === colId)
+    const targetFolderName = colId === "uncategorized"
+      ? "Tanpa Kategori"
+      : targetCollection?.name || "Folder"
+
     try {
       const selectedColId = colId === "uncategorized" ? undefined : (colId as any)
 
@@ -143,6 +154,7 @@ export function ResultCard({ data, className }: ResultCardProps) {
           collectionId: selectedColId,
         })
         setLocalSavedCollectionId(colId)
+        toast.success(`Ringkasan dipindahkan ke "${targetFolderName}"`)
       } else {
         // Save new summary
         const newId = await saveSummary({
@@ -157,8 +169,10 @@ export function ResultCard({ data, className }: ResultCardProps) {
         })
         setSavedId(newId)
         setLocalSavedCollectionId(colId)
+        toast.success(`Ringkasan berhasil disimpan ke "${targetFolderName}"`)
       }
     } catch (err) {
+      toast.error(`Gagal menyimpan: ${err instanceof Error ? err.message : "Terjadi kesalahan"}`)
       console.error("Gagal menyimpan ringkasan:", err)
     } finally {
       setSaveLoading(false)
@@ -211,7 +225,6 @@ export function ResultCard({ data, className }: ResultCardProps) {
           </ul>
         </div>
       )}
-
       {/* Action buttons — only appear after everything is revealed */}
       {isFullyRevealed && (
         <div className="flex gap-2 pt-2 mt-auto animate-in fade-in duration-500">
@@ -219,7 +232,7 @@ export function ResultCard({ data, className }: ResultCardProps) {
             variant="outline"
             size="sm"
             onClick={handleCopy}
-            className="flex-1 text-xs transition-all"
+            className="flex-1 text-xs transition-all px-2.5"
           >
             <Copy className="w-3.5 h-3.5 mr-1.5 shrink-0 text-muted-foreground/80" />
             {copied ? "Copied!" : "Copy"}
@@ -267,11 +280,10 @@ export function ResultCard({ data, className }: ResultCardProps) {
                   variant={isSaved ? "secondary" : "outline"}
                   size="sm"
                   disabled={saveLoading || isLoading}
-                  className={`flex-1 text-xs transition-all truncate ${
-                    isSaved
+                  className={`flex-1 text-xs transition-all truncate ${isSaved
                       ? "border border-teal-500/20 bg-teal-500/10 text-teal-800 dark:text-teal-400 hover:bg-teal-500/20"
                       : ""
-                  }`}
+                    }`}
                 >
                   {saveLoading ? (
                     <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin shrink-0" />

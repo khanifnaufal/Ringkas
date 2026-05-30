@@ -7,7 +7,6 @@ import { SignInButton } from "@clerk/nextjs"
 import { useConvexAuth } from "convex/react"
 import {
   Folder,
-  FolderOpen,
   Lock,
   Plus,
   Trash2,
@@ -17,10 +16,21 @@ import {
   FileText,
   Type,
   Inbox,
-  Sparkles,
-  Layers
+  Layers,
+  GripVertical
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import { toast } from "sonner"
 
 const EMOJIS = ["📚", "🎓", "💼", "🔬", "📰", "💡", "💻", "🎯", "✍️", "📁"]
 
@@ -52,12 +62,21 @@ export function CollectionsSidebar({
   const collections = useQuery(api.collections.list)
   const createCollection = useMutation(api.collections.create)
   const removeCollection = useMutation(api.collections.remove)
+  const removeSummary = useMutation(api.summaries.remove)
+  const moveSummary = useMutation(api.summaries.move)
 
   // Creation State
   const [isCreating, setIsCreating] = useState(false)
   const [newColName, setNewColName] = useState("")
   const [selectedEmoji, setSelectedEmoji] = useState("📁")
   const [createLoading, setCreateLoading] = useState(false)
+
+  // Delete State
+  const [deleteTarget, setDeleteTarget] = useState<{
+    type: "collection" | "summary"
+    id: string
+    name: string
+  } | null>(null)
 
   // Expanded folders state (record of collectionId -> boolean)
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({
@@ -81,23 +100,57 @@ export function CollectionsSidebar({
         name: newColName.trim(),
         emoji: selectedEmoji
       })
+      toast.success(`Koleksi "${newColName.trim()}" berhasil dibuat`)
       setNewColName("")
       setIsCreating(false)
     } catch (err) {
       console.error("Gagal membuat koleksi:", err)
+      toast.error(`Gagal membuat koleksi: ${err instanceof Error ? err.message : "Terjadi kesalahan"}`)
     } finally {
       setCreateLoading(false)
     }
   }
 
-  const handleRemoveCollection = async (e: React.MouseEvent, id: string, name: string) => {
+  const handleRemoveCollection = (e: React.MouseEvent, id: string, name: string) => {
     e.stopPropagation()
-    if (confirm(`Apakah Anda yakin ingin menghapus koleksi "${name}"? Semua ringkasan di dalamnya juga akan dihapus.`)) {
-      try {
+    setDeleteTarget({ type: "collection", id, name })
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteTarget) return
+    const { type, id, name } = deleteTarget
+    setDeleteTarget(null)
+
+    try {
+      if (type === "collection") {
         await removeCollection({ id: id as any })
-      } catch (err) {
-        console.error("Gagal menghapus koleksi:", err)
+        toast.success(`Koleksi "${name}" berhasil dihapus beserta semua ringkasannya`)
+      } else {
+        await removeSummary({ id: id as any })
+        toast.success(`Ringkasan "${name}" berhasil dihapus`)
       }
+    } catch (err) {
+      toast.error(`Gagal menghapus: ${err instanceof Error ? err.message : "Terjadi kesalahan"}`)
+    }
+  }
+
+  const handleMoveSummary = async (summaryId: string, targetCollectionId: string) => {
+    const selectedColId = targetCollectionId === "uncategorized" ? undefined : (targetCollectionId as any)
+
+    const targetCollection = collections?.find(c => c._id === targetCollectionId)
+    const targetFolderName = targetCollectionId === "uncategorized"
+      ? "Tanpa Kategori"
+      : targetCollection?.name || "Folder"
+
+    try {
+      await moveSummary({
+        id: summaryId as any,
+        collectionId: selectedColId,
+      })
+      toast.success(`Ringkasan dipindahkan ke "${targetFolderName}"`)
+    } catch (err) {
+      toast.error(`Gagal memindahkan: ${err instanceof Error ? err.message : "Terjadi kesalahan"}`)
+      console.error("Gagal memindahkan ringkasan:", err)
     }
   }
 
@@ -248,6 +301,8 @@ export function CollectionsSidebar({
           isExpanded={!!expandedFolders.uncategorized}
           onToggle={() => toggleFolder("uncategorized")}
           onSelectSummary={onSelectSummary}
+          onDeleteSummary={(id, name) => setDeleteTarget({ type: "summary", id, name })}
+          onMoveSummary={handleMoveSummary}
           activeSummaryId={activeSummaryId}
         />
 
@@ -268,11 +323,34 @@ export function CollectionsSidebar({
               onToggle={() => toggleFolder(col._id)}
               onDelete={(e) => handleRemoveCollection(e, col._id, col.name)}
               onSelectSummary={onSelectSummary}
+              onDeleteSummary={(id, name) => setDeleteTarget({ type: "summary", id, name })}
+              onMoveSummary={handleMoveSummary}
               activeSummaryId={activeSummaryId}
             />
           ))
         )}
       </div>
+
+      {/* ── Confirmation AlertDialog ────────────────────────────────────── */}
+      <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Hapus data?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Data yang sudah dihapus tidak dapat dikembalikan.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
@@ -286,6 +364,8 @@ interface FolderItemProps {
   onToggle: () => void
   onDelete?: (e: React.MouseEvent) => void
   onSelectSummary: (summary: Summary) => void
+  onDeleteSummary: (id: string, name: string) => void
+  onMoveSummary: (summaryId: string, targetCollectionId: string) => void
   activeSummaryId?: string
 }
 
@@ -297,6 +377,8 @@ function FolderItem({
   onToggle,
   onDelete,
   onSelectSummary,
+  onDeleteSummary,
+  onMoveSummary,
   activeSummaryId
 }: FolderItemProps) {
   // Query summaries inside this folder
@@ -304,28 +386,57 @@ function FolderItem({
     api.summaries.listByCollection,
     collectionId === "uncategorized" ? {} : { collectionId: collectionId as any }
   )
-  const removeSummary = useMutation(api.summaries.remove)
 
-  const handleDeleteSummary = async (e: React.MouseEvent, summaryId: string, title: string) => {
-    e.stopPropagation()
-    if (confirm(`Apakah Anda yakin ingin menghapus ringkasan "${title}"?`)) {
-      try {
-        await removeSummary({ id: summaryId as any })
-      } catch (err) {
-        console.error("Gagal menghapus ringkasan:", err)
-      }
+  const [dragCounter, setDragCounter] = useState(0)
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragCounter(prev => prev + 1)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragCounter(prev => Math.max(0, prev - 1))
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragCounter(0)
+    const summaryId = e.dataTransfer.getData("text/plain")
+    if (summaryId) {
+      onMoveSummary(summaryId, collectionId)
     }
   }
 
+  const handleDeleteSummary = (e: React.MouseEvent, summaryId: string, title: string) => {
+    e.stopPropagation()
+    onDeleteSummary(summaryId, title)
+  }
+
   const count = summaries ? summaries.length : 0
+  const isDragOver = dragCounter > 0
 
   return (
-    <div className="flex flex-col">
+    <div
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className="flex flex-col"
+    >
       {/* Folder Header Row */}
       <div
         onClick={onToggle}
         className={`group flex items-center justify-between p-2 rounded-lg text-xs font-medium cursor-pointer transition-all ${
-          isExpanded ? "bg-muted/50 text-foreground" : "hover:bg-muted/30 text-muted-foreground hover:text-foreground"
+          isDragOver
+            ? "bg-primary/20 border border-dashed border-primary/50 text-primary animate-pulse"
+            : isExpanded
+            ? "bg-muted/50 text-foreground"
+            : "hover:bg-muted/30 text-muted-foreground hover:text-foreground"
         }`}
       >
         <div className="flex items-center gap-2 min-w-0">
@@ -356,7 +467,7 @@ function FolderItem({
         <div className="pl-6 pr-1 py-1 space-y-1 border-l border-border/50 ml-3.5 mt-0.5 animate-in fade-in duration-200">
           {!summaries ? (
             <div className="flex items-center gap-1.5 py-1.5 px-2 text-[10px] text-muted-foreground">
-              <Loader2 className="w-3 h-3 animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
               Memuat...
             </div>
           ) : count === 0 ? (
@@ -373,13 +484,19 @@ function FolderItem({
                 <div
                   key={summary._id}
                   onClick={() => onSelectSummary(summary)}
-                  className={`group/item flex items-center justify-between p-1.5 rounded-md text-[11px] cursor-pointer transition-all ${
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData("text/plain", summary._id)
+                    e.dataTransfer.effectAllowed = "move"
+                  }}
+                  className={`group/item flex items-center justify-between p-1.5 rounded-md text-[11px] cursor-grab active:cursor-grabbing transition-all ${
                     isActive
                       ? "bg-primary/15 text-primary font-medium border border-primary/20"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
                   }`}
                 >
-                  <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                    <GripVertical className="w-3 h-3 text-muted-foreground/40 opacity-0 group-hover/item:opacity-100 transition-opacity shrink-0 cursor-grab active:cursor-grabbing" />
                     <span className="shrink-0 text-muted-foreground/60">
                       {isPdf ? <FileText className="w-3 h-3" /> : <Type className="w-3 h-3" />}
                     </span>
