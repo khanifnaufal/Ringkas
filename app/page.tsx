@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useSummarizer } from "@/hooks/useSummarizer"
 import { AppHeader } from "@/components/layout/AppHeader"
 import { InputPanel } from "@/components/summarizer/InputPanel"
@@ -16,6 +16,22 @@ export default function Home() {
     setActiveSummaryId(summary._id)
     summarizer.setResult(summary)
   };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = sessionStorage.getItem("ringkas_open_summary")
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved)
+          handleSelectSummary(parsed)
+        } catch (err) {
+          console.error("Gagal memuat ringkasan dari history:", err)
+        } finally {
+          sessionStorage.removeItem("ringkas_open_summary")
+        }
+      }
+    }
+  }, [])
 
   const handleNewSummary = () => {
     setActiveSummaryId(undefined)

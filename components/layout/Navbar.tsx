@@ -46,13 +46,24 @@ export function Navbar() {
               </Button>
             </Show>
             <Show when="signed-in">
-              <UserButton
-                appearance={{
-                  elements: {
-                    avatarBox: "w-8 h-8",
-                  },
-                }}
-              />
+              <div className="flex items-center gap-3">
+                <Button
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground"
+                  id="navbar-history-link"
+                >
+                  <Link href="/history">Riwayat</Link>
+                </Button>
+                <UserButton
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-8 h-8",
+                    },
+                  }}
+                />
+              </div>
             </Show>
           </div>
         </div>

@@ -1,6 +1,32 @@
 import { mutation, query } from "./_generated/server"
 import { v } from "convex/values"
 
+export const listAll = query({
+  args: {
+    category:  v.optional(v.string()),
+    sentiment: v.optional(v.string()),
+    type:      v.optional(v.union(v.literal("pdf"), v.literal("text"))),
+  },
+  handler: async (ctx, { category, sentiment, type }) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity) return []
+
+    let q = ctx.db
+      .query("summaries")
+      .withIndex("by_user", q => q.eq("userId", identity.tokenIdentifier))
+
+    let results = await q.order("desc").collect()
+
+    // Client-side filters (category, sentiment, type)
+    if (category)  results = results.filter(s => s.category  === category)
+    if (sentiment) results = results.filter(s => s.sentiment === sentiment)
+    if (type === "pdf")  results = results.filter(s => !!s.pdfMeta)
+    if (type === "text") results = results.filter(s => !s.pdfMeta)
+
+    return results
+  },
+})
+
 export const save = mutation({
   args: {
     collectionId: v.optional(v.id("collections")),
