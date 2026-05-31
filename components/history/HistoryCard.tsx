@@ -67,47 +67,47 @@ export function HistoryCard({ item, collectionName, onOpen, onDelete }: HistoryC
         </div>
 
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-foreground leading-snug truncate" title={title}>
+          <p className="text-sm font-semibold text-foreground leading-snug truncate" title={title}>
             {title}
           </p>
 
           {/* Meta row */}
           <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-            <Badge variant="outline" className="text-[10px] h-5 px-1.5 capitalize font-normal">
+            <Badge variant="outline" className="text-xs h-5 px-2 capitalize font-normal">
               {item.category}
             </Badge>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium capitalize ${sentimentClass}`}>
+            <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${sentimentClass}`}>
               {item.sentiment}
             </span>
             {isPdf && (
-              <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400 font-medium">
-                {item.pdfMeta!.pages}p
+              <span className="text-xs px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400 font-medium">
+                {item.pdfMeta!.pages} Halaman
               </span>
             )}
-            <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground ml-auto">
-              <Clock className="w-2.5 h-2.5" />
-              ~{item.readingTime} mnt
+            <span className="flex items-center gap-0.5 text-xs text-muted-foreground ml-auto">
+              <Clock className="w-3 h-3" />
+              ~{item.readingTime} menit
             </span>
           </div>
         </div>
       </div>
 
       {/* Summary preview */}
-      <p className="text-xs text-muted-foreground leading-relaxed line-clamp-2">
+      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2">
         {item.summary}
       </p>
 
       {/* Footer row */}
       <div className="flex items-center justify-between pt-1 border-t border-border/40 mt-auto">
         {/* Left: date + folder */}
-        <div className="flex items-center gap-3 text-[10px] text-muted-foreground">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
-            <Calendar className="w-2.5 h-2.5" />
+            <Calendar className="w-3.5 h-3.5" />
             {formatDate(item.createdAt)}
           </span>
           {collectionName && (
             <span className="flex items-center gap-1">
-              <FolderOpen className="w-2.5 h-2.5" />
+              <FolderOpen className="w-3.5 h-3.5" />
               {collectionName}
             </span>
           )}

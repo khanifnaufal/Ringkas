@@ -1,8 +1,9 @@
 "use client"
 
-import { useEffect, useState, ChangeEvent } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Search, X, ArrowUpDown, Tag, FileText, Smile } from "lucide-react"
+import { CustomSelect } from "./CustomSelect"
 
 export type SortOption = "newest" | "oldest" | "az" | "za"
 export type TypeFilter = "all" | "pdf" | "text"
@@ -25,6 +26,7 @@ interface HistoryFiltersProps {
   onReset: () => void
 }
 
+// ── MAIN FILTER COMPONENT ────────────────────────────────────────────────────
 export function HistoryFilters({
   sort, onSortChange,
   search, onSearchChange,
@@ -49,23 +51,23 @@ export function HistoryFilters({
     typeFilter !== "all" ||
     sort !== "newest"
 
-  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setLocalSearch(e.target.value)
-  }
+  // Options lists mapping
+  const sortOptions = [
+    { value: "newest", label: "Terbaru" },
+    { value: "oldest", label: "Terlama" },
+    { value: "az", label: "A → Z" },
+    { value: "za", label: "Z → A" },
+  ]
 
-  const handleSortChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    onSortChange(e.target.value as SortOption)
-  }
+  const categoryOptions = [
+    { value: "all", label: "Semua Kategori" },
+    ...categories.map(c => ({ value: c, label: c })),
+  ]
 
-  const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value
-    onCategoryChange(val === "all" ? "" : val)
-  }
-
-  const handleSentimentChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value
-    onSentimentChange(val === "all" ? "" : val)
-  }
+  const sentimentOptions = [
+    { value: "all", label: "Semua Sentimen" },
+    ...sentiments.map(s => ({ value: s, label: s })),
+  ]
 
   return (
     <div className="space-y-3 mb-6">
@@ -79,13 +81,13 @@ export function HistoryFilters({
             type="text"
             placeholder="Cari judul atau isi ringkasan..."
             value={localSearch}
-            onChange={handleSearchChange}
+            onChange={e => setLocalSearch(e.target.value)}
             className="pl-8 h-9 w-full rounded-md border border-border bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           />
           {localSearch && (
             <button
               onClick={() => { setLocalSearch(""); onSearchChange("") }}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -95,17 +97,12 @@ export function HistoryFilters({
         {/* Sort */}
         <div className="flex items-center gap-1.5 shrink-0">
           <ArrowUpDown className="w-3.5 h-3.5 text-muted-foreground" />
-          <select
-            id="history-sort"
+          <CustomSelect
             value={sort}
-            onChange={handleSortChange}
-            className="h-9 rounded-md border border-border bg-background px-2.5 py-1 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer hover:bg-muted/50 transition-colors w-[150px]"
-          >
-            <option value="newest">Terbaru</option>
-            <option value="oldest">Terlama</option>
-            <option value="az">A → Z</option>
-            <option value="za">Z → A</option>
-          </select>
+            onChange={v => onSortChange(v as SortOption)}
+            options={sortOptions}
+            widthClass="w-[140px]"
+          />
         </div>
       </div>
 
@@ -115,17 +112,13 @@ export function HistoryFilters({
         {categories.length > 0 && (
           <div className="flex items-center gap-1.5">
             <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-            <select
-              id="history-category"
+            <CustomSelect
               value={category || "all"}
-              onChange={handleCategoryChange}
-              className="h-8 rounded-md border border-border bg-background px-2 py-1 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer hover:bg-muted/50 transition-colors w-[130px] capitalize"
-            >
-              <option value="all">Semua Kategori</option>
-              {categories.map(c => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+              onChange={v => onCategoryChange(v === "all" ? "" : v)}
+              options={categoryOptions}
+              widthClass="w-[140px]"
+              placeholder="Kategori"
+            />
           </div>
         )}
 
@@ -133,17 +126,13 @@ export function HistoryFilters({
         {sentiments.length > 0 && (
           <div className="flex items-center gap-1.5">
             <Smile className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-            <select
-              id="history-sentiment"
+            <CustomSelect
               value={sentiment || "all"}
-              onChange={handleSentimentChange}
-              className="h-8 rounded-md border border-border bg-background px-2 py-1 text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer hover:bg-muted/50 transition-colors w-[130px] capitalize"
-            >
-              <option value="all">Semua Sentimen</option>
-              {sentiments.map(s => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
+              onChange={v => onSentimentChange(v === "all" ? "" : v)}
+              options={sentimentOptions}
+              widthClass="w-[140px]"
+              placeholder="Sentimen"
+            />
           </div>
         )}
 
@@ -154,9 +143,9 @@ export function HistoryFilters({
               key={t}
               id={`history-type-${t}`}
               onClick={() => onTypeFilterChange(t)}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
                 typeFilter === t
-                  ? "bg-background text-foreground shadow-sm border border-border"
+                  ? "bg-background text-foreground shadow-xs border border-border"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -173,7 +162,7 @@ export function HistoryFilters({
             variant="ghost"
             size="sm"
             onClick={onReset}
-            className="h-8 text-xs text-muted-foreground hover:text-foreground gap-1 ml-auto"
+            className="h-8 text-xs text-muted-foreground hover:text-foreground gap-1 ml-auto cursor-pointer"
           >
             <X className="w-3 h-3" />
             Reset

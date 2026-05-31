@@ -307,34 +307,35 @@ export function HistoryPage() {
             onClick={e => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-start justify-between p-5 border-b border-border/60">
-              <div className="flex items-start gap-3 min-w-0">
-                <div className={`mt-1 w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+            <div className="flex items-start justify-between p-6 border-b border-border/60">
+              <div className="flex items-start gap-4 min-w-0 flex-1">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
                   previewItem.pdfMeta ? "bg-sky-500/10 text-sky-600 dark:text-sky-400" : "bg-violet-500/10 text-violet-600 dark:text-violet-400"
                 }`}>
                   {previewItem.pdfMeta ? <FileText className="w-5 h-5" /> : <Type className="w-5 h-5" />}
                 </div>
-                <div className="min-w-0">
-                  <h2 className="text-base sm:text-lg font-semibold text-foreground leading-snug break-words">
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-lg sm:text-xl font-semibold text-foreground leading-snug break-words">
                     {previewItem.pdfMeta?.filename ?? previewItem.originalText.slice(0, 80) + (previewItem.originalText.length > 80 ? "…" : "")}
                   </h2>
                   {/* Badges row */}
-                  <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                    <Badge variant="outline" className="text-[10px] capitalize px-2 py-0.5">
+                  <div className="flex flex-wrap items-center gap-2 mt-3">
+                    <Badge variant="outline" className="text-xs capitalize px-2.5 py-0.5">
                       {previewItem.category}
                     </Badge>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium capitalize ${
+                    <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium capitalize ${
                       SENTIMENT_COLORS[previewItem.sentiment as keyof typeof SENTIMENT_COLORS] ?? "bg-gray-100 text-gray-700"
                     }`}>
                       {previewItem.sentiment}
                     </span>
                     {previewItem.pdfMeta && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400 font-medium">
+                      <span className="text-xs px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400 font-medium">
                         {previewItem.pdfMeta.pages} Halaman
                       </span>
                     )}
-                    <span className="text-[10px] text-muted-foreground ml-auto flex items-center gap-1">
-                      <Clock className="w-3 h-3" /> ~{previewItem.readingTime} mnt
+                    <span className="text-xs text-muted-foreground flex items-center gap-1 bg-muted/65 px-2.5 py-0.5 rounded-full">
+                      <Clock className="w-3.5 h-3.5 text-muted-foreground/80" />
+                      ~{previewItem.readingTime} menit
                     </span>
                   </div>
                 </div>
