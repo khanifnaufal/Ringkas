@@ -79,7 +79,8 @@ export function FolderItem({
     e.preventDefault()
     setDragCounter(0)
     const summaryId = e.dataTransfer.getData("text/plain")
-    if (summaryId) {
+    const alreadyHere = summaries?.some((s: Summary) => s._id === summaryId)
+    if (summaryId && !alreadyHere) {
       onMoveSummary(summaryId, collectionId)
     }
   }
@@ -103,13 +104,12 @@ export function FolderItem({
       {/* Folder Header Row */}
       <div
         onClick={onToggle}
-        className={`group flex items-center justify-between p-2 rounded-lg text-xs font-medium cursor-pointer transition-all ${
-          isDragOver
-            ? "bg-primary/20 border border-dashed border-primary/50 text-primary animate-pulse"
-            : isExpanded
+        className={`group flex items-center justify-between p-2 rounded-lg text-xs font-medium cursor-pointer transition-all ${isDragOver
+          ? "bg-primary/20 border border-dashed border-primary/50 text-primary animate-pulse"
+          : isExpanded
             ? "bg-muted/50 text-foreground"
             : "hover:bg-muted/30 text-muted-foreground hover:text-foreground"
-        }`}
+          }`}
       >
         <div className="flex items-center gap-2 min-w-0">
           <span className="shrink-0 text-muted-foreground/60 transition-transform">
@@ -117,7 +117,7 @@ export function FolderItem({
           </span>
           <span className="shrink-0 text-sm">{emoji}</span>
           <span className="truncate font-medium">{name}</span>
-          <span className="text-[10px] px-1.5 py-0.2 bg-muted rounded-full text-muted-foreground group-hover:bg-background shrink-0 font-normal">
+          <span className="text-[10px] px-1.5 py-0.5 bg-muted rounded-full text-muted-foreground group-hover:bg-background shrink-0 font-normal">
             {count}
           </span>
         </div>
@@ -161,11 +161,10 @@ export function FolderItem({
                     e.dataTransfer.setData("text/plain", summary._id)
                     e.dataTransfer.effectAllowed = "move"
                   }}
-                  className={`group/item flex items-center justify-between p-1.5 rounded-md text-[11px] cursor-grab active:cursor-grabbing transition-all ${
-                    isActive
-                      ? "bg-primary/15 text-primary font-medium border border-primary/20"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
-                  }`}
+                  className={`group/item flex items-center justify-between p-1.5 rounded-md text-[11px] cursor-grab active:cursor-grabbing transition-all ${isActive
+                    ? "bg-primary/15 text-primary font-medium border border-primary/20"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                    }`}
                 >
                   <div className="flex items-center gap-1.5 min-w-0 flex-1">
                     <GripVertical className="w-3 h-3 text-muted-foreground/40 opacity-0 group-hover/item:opacity-100 transition-opacity shrink-0 cursor-grab active:cursor-grabbing" />
