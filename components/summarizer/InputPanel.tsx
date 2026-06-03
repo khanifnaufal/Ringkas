@@ -6,6 +6,7 @@ import { LengthSelector } from "@/components/summarizer/LengthSelector"
 import { PdfUploadPanel } from "@/components/summarizer/PdfUploadPanel"
 import { SummaryLength, SummaryMode, PdfMeta } from "@/types/summary"
 import { FileText, Type, AlertCircle, Loader2 } from "lucide-react"
+import { motion, AnimatePresence } from "motion/react"
 
 interface InputPanelProps {
   // Mode
@@ -63,84 +64,102 @@ export function InputPanel({
             type="button"
             onClick={() => onModeChange(tab.value)}
             className={`
-              flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium
-              transition-all duration-200
-              ${mode === tab.value
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-              }
+              relative flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-medium
+              transition-colors duration-200 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring
+              ${mode === tab.value ? "text-foreground" : "text-muted-foreground hover:text-foreground"}
             `}
           >
-            {tab.icon}
-            {tab.label}
+            {mode === tab.value && (
+              <motion.div
+                layoutId="active-mode-tab"
+                className="absolute inset-0 bg-background rounded-lg shadow-sm"
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              />
+            )}
+            <span className="relative z-10 flex items-center gap-2">
+              {tab.icon}
+              {tab.label}
+            </span>
           </button>
         ))}
       </div>
 
-      {/* ── Text mode ─────────────────────────────────────────────── */}
-      {mode === "text" && (
-        <div
-          role="tabpanel"
-          id="panel-text"
-          aria-labelledby="tab-text"
-          className="flex flex-col gap-4 w-full"
-        >
-          <Textarea
-            placeholder="Paste teks di sini — artikel, email, laporan, atau apapun yang ingin diringkas…"
-            className="min-h-[250px] md:min-h-[300px] resize-y text-base focus-visible:ring-primary/50"
-            value={text}
-            onChange={(e) => onTextChange(e.target.value)}
-          />
-
-          <LengthSelector value={length} onChange={onLengthChange} wordCount={wordCount} />
-
-          <Button
-            size="lg"
-            onClick={onSubmit}
-            disabled={!canSubmit}
-            className="w-full text-base font-semibold shadow-md transition-all hover:shadow-lg"
+      <AnimatePresence mode="wait">
+        {mode === "text" ? (
+          <motion.div
+            key="text-panel"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.15 }}
+            role="tabpanel"
+            id="panel-text"
+            aria-labelledby="tab-text"
+            className="flex flex-col gap-4 w-full"
           >
-            {loading
-              ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Meringkas…</>
-              : "Ringkas Sekarang"
-            }
-          </Button>
+            <Textarea
+              placeholder="Paste teks di sini — artikel, email, laporan, atau apapun yang ingin diringkas…"
+              className="min-h-[250px] md:min-h-[300px] resize-y text-base focus-visible:ring-primary/50"
+              value={text}
+              onChange={(e) => onTextChange(e.target.value)}
+            />
 
-          {error && (
-            <div
-              role="alert"
-              aria-live="assertive"
-              className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-lg"
+            <LengthSelector value={length} onChange={onLengthChange} wordCount={wordCount} />
+
+            <Button
+              size="lg"
+              onClick={onSubmit}
+              disabled={!canSubmit}
+              className="w-full text-base font-semibold shadow-md transition-all hover:shadow-lg"
             >
-              <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-              {error}
-            </div>
-          )}
-        </div>
-      )}
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Meringkas…
+                </>
+              ) : (
+                "Ringkas Sekarang"
+              )}
+            </Button>
 
-      {/* ── PDF mode ──────────────────────────────────────────────── */}
-      {mode === "pdf" && (
-        <div
-          role="tabpanel"
-          id="panel-pdf"
-          aria-labelledby="tab-pdf"
-          className="w-full"
-        >
-          <PdfUploadPanel
-            pdfFile={pdfFile}
-            pdfMeta={pdfMeta}
-            length={length}
-            onLengthChange={onLengthChange}
-            loading={loading}
-            canSubmit={canSubmit}
-            error={error}
-            onPdfReady={onPdfReady}
-            onClear={onClearPdf}
-            onSubmit={onSubmit}
-          />
-        </div>
-      )}
+            {error && (
+              <div
+                role="alert"
+                aria-live="assertive"
+                className="flex items-start gap-2 p-3 bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-lg"
+              >
+                <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                {error}
+              </div>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="pdf-panel"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.15 }}
+            role="tabpanel"
+            id="panel-pdf"
+            aria-labelledby="tab-pdf"
+            className="w-full"
+          >
+            <PdfUploadPanel
+              pdfFile={pdfFile}
+              pdfMeta={pdfMeta}
+              length={length}
+              onLengthChange={onLengthChange}
+              loading={loading}
+              canSubmit={canSubmit}
+              error={error}
+              onPdfReady={onPdfReady}
+              onClear={onClearPdf}
+              onSubmit={onSubmit}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

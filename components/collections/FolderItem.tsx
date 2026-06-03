@@ -5,13 +5,13 @@ import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import {
   ChevronRight,
-  ChevronDown,
   Trash2,
   FileText,
   Type,
   GripVertical,
   Loader2,
 } from "lucide-react"
+import { motion, AnimatePresence } from "motion/react"
 
 export interface Summary {
   _id: string
@@ -112,9 +112,13 @@ export function FolderItem({
           }`}
       >
         <div className="flex items-center gap-2 min-w-0">
-          <span className="shrink-0 text-muted-foreground/60 transition-transform">
-            {isExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
-          </span>
+          <motion.span
+            animate={{ rotate: isExpanded ? 90 : 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="shrink-0 text-muted-foreground/60 flex items-center justify-center"
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+          </motion.span>
           <span className="shrink-0 text-sm">{emoji}</span>
           <span className="truncate font-medium">{name}</span>
           <span className="text-[10px] px-1.5 py-0.5 bg-muted rounded-full text-muted-foreground group-hover:bg-background shrink-0 font-normal">
@@ -135,60 +139,68 @@ export function FolderItem({
       </div>
 
       {/* Expanded Summaries List */}
-      {isExpanded && (
-        <div className="pl-6 pr-1 py-1 space-y-1 border-l border-border/50 ml-3.5 mt-0.5 animate-in fade-in duration-200">
-          {!summaries ? (
-            <div className="flex items-center gap-1.5 py-1.5 px-2 text-[10px] text-muted-foreground">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              Memuat...
-            </div>
-          ) : count === 0 ? (
-            <div className="py-2 px-2 text-[10px] text-muted-foreground/70 italic">
-              Kosong
-            </div>
-          ) : (
-            summaries.map((summary: any) => {
-              const isPdf = !!summary.pdfMeta
-              const title = summary.pdfMeta?.filename || summary.originalText.slice(0, 24) || "Ringkasan Teks"
-              const isActive = activeSummaryId === summary._id
+      <AnimatePresence initial={false}>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden pl-6 pr-1 py-1 space-y-1 border-l border-border/50 ml-3.5 mt-0.5"
+          >
+            {!summaries ? (
+              <div className="flex items-center gap-1.5 py-1.5 px-2 text-[10px] text-muted-foreground">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Memuat...
+              </div>
+            ) : count === 0 ? (
+              <div className="py-2 px-2 text-[10px] text-muted-foreground/70 italic">
+                Kosong
+              </div>
+            ) : (
+              summaries.map((summary: any) => {
+                const isPdf = !!summary.pdfMeta
+                const title = summary.pdfMeta?.filename || summary.originalText.slice(0, 24) || "Ringkasan Teks"
+                const isActive = activeSummaryId === summary._id
 
-              return (
-                <div
-                  key={summary._id}
-                  onClick={() => onSelectSummary(summary)}
-                  draggable
-                  onDragStart={(e) => {
-                    e.dataTransfer.setData("text/plain", summary._id)
-                    e.dataTransfer.effectAllowed = "move"
-                  }}
-                  className={`group/item flex items-center justify-between p-1.5 rounded-md text-[11px] cursor-grab active:cursor-grabbing transition-all ${isActive
-                    ? "bg-primary/15 text-primary font-medium border border-primary/20"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
-                    }`}
-                >
-                  <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                    <GripVertical className="w-3 h-3 text-muted-foreground/40 opacity-0 group-hover/item:opacity-100 transition-opacity shrink-0 cursor-grab active:cursor-grabbing" />
-                    <span className="shrink-0 text-muted-foreground/60">
-                      {isPdf ? <FileText className="w-3 h-3" /> : <Type className="w-3 h-3" />}
-                    </span>
-                    <span className="truncate" title={title}>
-                      {title}
-                    </span>
-                  </div>
-
-                  <button
-                    onClick={(e) => handleDeleteSummary(e, summary._id, title)}
-                    title="Hapus Ringkasan"
-                    className="opacity-0 group-hover/item:opacity-100 hover:text-destructive p-0.5 rounded hover:bg-muted text-muted-foreground/50 transition-all shrink-0 cursor-pointer"
+                return (
+                  <div
+                    key={summary._id}
+                    onClick={() => onSelectSummary(summary)}
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData("text/plain", summary._id)
+                      e.dataTransfer.effectAllowed = "move"
+                    }}
+                    className={`group/item flex items-center justify-between p-1.5 rounded-md text-[11px] cursor-grab active:cursor-grabbing transition-all ${isActive
+                      ? "bg-primary/15 text-primary font-medium border border-primary/20"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                      }`}
                   >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
-                </div>
-              )
-            })
-          )}
-        </div>
-      )}
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                      <GripVertical className="w-3 h-3 text-muted-foreground/40 opacity-0 group-hover/item:opacity-100 transition-opacity shrink-0 cursor-grab active:cursor-grabbing" />
+                      <span className="shrink-0 text-muted-foreground/60">
+                        {isPdf ? <FileText className="w-3 h-3" /> : <Type className="w-3 h-3" />}
+                      </span>
+                      <span className="truncate" title={title}>
+                        {title}
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={(e) => handleDeleteSummary(e, summary._id, title)}
+                      title="Hapus Ringkasan"
+                      className="opacity-0 group-hover/item:opacity-100 hover:text-destructive p-0.5 rounded hover:bg-muted text-muted-foreground/50 transition-all shrink-0 cursor-pointer"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+                )
+              })
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -1,6 +1,8 @@
 "use client"
 
 import { BookOpen, Clock, FileText, Type, Tag } from "lucide-react"
+import { useEffect, useState, useRef } from "react"
+import { animate } from "motion/react"
 
 interface HistorySummaryItem {
   _id: string
@@ -13,6 +15,32 @@ interface HistorySummaryItem {
 interface HistoryStatsProps {
   summaries: HistorySummaryItem[]
   filtered: HistorySummaryItem[]
+}
+
+interface AnimatedNumberProps {
+  value: number
+  className?: string
+}
+
+function AnimatedNumber({ value, className }: AnimatedNumberProps) {
+  const [displayValue, setDisplayValue] = useState(0)
+  const displayValueRef = useRef(0)
+
+  useEffect(() => {
+    const controls = animate(displayValueRef.current, value, {
+      duration: 0.8,
+      ease: "easeOut",
+      onUpdate(val) {
+        const rounded = Math.round(val)
+        displayValueRef.current = rounded
+        setDisplayValue(rounded)
+      },
+    })
+
+    return () => controls.stop()
+  }, [value])
+
+  return <span className={className}>{displayValue}</span>
 }
 
 export function HistoryStats({ summaries, filtered }: HistoryStatsProps) {
@@ -40,8 +68,16 @@ export function HistoryStats({ summaries, filtered }: HistoryStatsProps) {
           <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wide">Tersimpan</p>
           <p className="text-lg font-bold text-foreground leading-tight">
             {isFiltered ? (
-              <><span className="text-primary">{filtered.length}</span><span className="text-sm font-normal text-muted-foreground"> / {summaries.length}</span></>
-            ) : summaries.length}
+              <>
+                <AnimatedNumber value={filtered.length} className="text-primary" />
+                <span className="text-sm font-normal text-muted-foreground">
+                  {" / "}
+                  <AnimatedNumber value={summaries.length} />
+                </span>
+              </>
+            ) : (
+              <AnimatedNumber value={summaries.length} />
+            )}
           </p>
         </div>
       </div>
@@ -53,7 +89,10 @@ export function HistoryStats({ summaries, filtered }: HistoryStatsProps) {
         </div>
         <div>
           <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wide">Total Baca</p>
-          <p className="text-lg font-bold text-foreground leading-tight">{totalTime}<span className="text-sm font-normal text-muted-foreground"> mnt</span></p>
+          <p className="text-lg font-bold text-foreground leading-tight">
+            <AnimatedNumber value={totalTime} />
+            <span className="text-sm font-normal text-muted-foreground"> mnt</span>
+          </p>
         </div>
       </div>
 
@@ -65,7 +104,11 @@ export function HistoryStats({ summaries, filtered }: HistoryStatsProps) {
         <div>
           <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wide">PDF / Teks</p>
           <p className="text-lg font-bold text-foreground leading-tight">
-            {pdfCount}<span className="text-sm font-normal text-muted-foreground"> / {textCount}</span>
+            <AnimatedNumber value={pdfCount} />
+            <span className="text-sm font-normal text-muted-foreground">
+              {" / "}
+              <AnimatedNumber value={textCount} />
+            </span>
           </p>
         </div>
       </div>
