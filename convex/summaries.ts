@@ -124,6 +124,19 @@ export const move = mutation({
   },
 })
 
+export const getById = query({
+  args: { id: v.id("summaries") },
+  handler: async (ctx, { id }) => {
+    const identity = await ctx.auth.getUserIdentity()
+    if (!identity) return null
+
+    const summary = await ctx.db.get(id)
+    if (!summary || summary.userId !== identity.tokenIdentifier) return null
+
+    return summary
+  },
+})
+
 export const remove = mutation({
   args: { id: v.id("summaries") },
   handler: async (ctx, { id }) => {
