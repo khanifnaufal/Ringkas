@@ -27,7 +27,9 @@ import {
   Clock,
   ExternalLink,
   Trash2,
+  MessageCircle,
 } from "lucide-react"
+import { AskPanel } from "./AskPanel"
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -93,6 +95,7 @@ export function HistoryPage() {
   const [previewItem, setPreviewItem] = useState<HistoryItem | null>(null)
   const [showOriginal, setShowOriginal] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [previewAskOpen, setPreviewAskOpen] = useState(false)
 
   // ── Delete dialog ─────────────────────────────────────────────────────────
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; title: string } | null>(null)
@@ -168,6 +171,7 @@ export function HistoryPage() {
     setPreviewItem(item)
     setShowOriginal(false)
     setCopied(false)
+    setPreviewAskOpen(false)
   }, [])
 
   // ── States ────────────────────────────────────────────────────────────────
@@ -411,6 +415,17 @@ export function HistoryPage() {
                   Hapus
                 </Button>
 
+                {/* Tanya */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPreviewAskOpen(true)}
+                  className="flex-1 sm:flex-initial text-xs h-9 hover:text-teal-600 hover:border-teal-500/30 hover:bg-teal-500/10 cursor-pointer"
+                >
+                  <MessageCircle className="w-4 h-4 mr-1" />
+                  Tanya
+                </Button>
+
                 {/* Copy */}
                 <Button
                   variant="outline"
@@ -453,6 +468,17 @@ export function HistoryPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Ask dialog from History preview */}
+      {previewItem && (
+        <AskPanel
+          open={previewAskOpen}
+          onOpenChange={setPreviewAskOpen}
+          summaryId={previewItem._id}
+          context={previewItem.originalText || previewItem.summary}
+          filename={previewItem.pdfMeta?.filename}
+        />
       )}
     </div>
   )

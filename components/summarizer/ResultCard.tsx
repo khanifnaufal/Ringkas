@@ -20,8 +20,10 @@ import {
   Lock,
   Inbox,
   Loader2,
-  FolderOpen
+  FolderOpen,
+  MessageCircle
 } from "lucide-react"
+import { AskPanel } from "@/components/history/AskPanel"
 import { useTypewriter } from "@/hooks/useTypewriter"
 import { useConvexAuth, useQuery, useMutation } from "convex/react"
 import { api } from "@/convex/_generated/api"
@@ -74,6 +76,7 @@ export function ResultCard({ data, className }: ResultCardProps) {
   const isDone = isFromCollection ? true : typewriteDone
 
   const [copied, setCopied] = useState(false)
+  const [askOpen, setAskOpen] = useState(false)
   const [revealCount, setRevealCount] = useState(isFromCollection ? data.keyPoints.length : 0)
 
   // Saving states
@@ -243,11 +246,11 @@ export function ResultCard({ data, className }: ResultCardProps) {
           <Button
             variant="outline"
             size="sm"
-            onClick={handleCopy}
-            className="flex-1 text-xs transition-all px-2.5"
+            onClick={() => setAskOpen(true)}
+            className="flex-1 text-xs transition-all hover:text-teal-600 hover:border-teal-500/30 hover:bg-teal-500/10 px-2.5"
           >
-            <Copy className="w-3.5 h-3.5 mr-1.5 shrink-0 text-muted-foreground/80" />
-            {copied ? "Copied!" : "Copy"}
+            <MessageCircle className="w-3.5 h-3.5 mr-1.5 shrink-0 text-muted-foreground/80" />
+            Tanya
           </Button>
 
           <AlertDialog>
@@ -379,6 +382,15 @@ export function ResultCard({ data, className }: ResultCardProps) {
           )}
         </div>
       )}
+
+      {/* Ask dialog — rendered outside to sit at root level */}
+      <AskPanel
+        open={askOpen}
+        onOpenChange={setAskOpen}
+        summaryId={summaryId || data.summary.slice(0, 50)}
+        context={data.originalText || data.summary}
+        filename={data.pdfMeta?.filename}
+      />
     </div>
   )
 }
