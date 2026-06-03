@@ -38,6 +38,8 @@ export default function Home() {
     summarizer.setResult(null)
     summarizer.setText("")
     summarizer.clearPdf()
+    summarizer.setUrls([""])
+    summarizer.setUrlResults(null)
   };
 
   const handleSubmit = async () => {
@@ -72,6 +74,10 @@ export default function Home() {
               pdfMeta={summarizer.pdfMeta}
               onPdfReady={summarizer.setPdfData}
               onClearPdf={summarizer.clearPdf}
+              urls={summarizer.urls}
+              onAddUrl={summarizer.addUrl}
+              onRemoveUrl={summarizer.removeUrl}
+              onUpdateUrl={summarizer.updateUrl}
               length={summarizer.length}
               onLengthChange={summarizer.setLength}
               loading={summarizer.loading}
@@ -87,6 +93,8 @@ export default function Home() {
               result={summarizer.result}
               loading={summarizer.loading}
               onNewSummary={handleNewSummary}
+              mode={summarizer.mode}
+              urlResults={summarizer.urlResults}
             />
           </div>
         </div>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { SummaryLength, SummaryResult, SummaryMode, PdfMeta } from "@/types/summary"
+import { SummaryLength, SummaryResult, SummaryMode, PdfMeta, UrlSummaryResult } from "@/types/summary"
 import { fetchSummary } from "@/services/summarize.service"
 import { MIN_TEXT_LENGTH } from "@/lib/constants"
 
@@ -21,6 +21,15 @@ interface UseSummarizerReturn {
   pdfText: string
   setPdfData: (file: File, meta: PdfMeta, text: string) => void
   clearPdf: () => void
+
+  // --- URL mode ---
+  urls: string[]
+  setUrls: (v: string[]) => void
+  addUrl: () => void
+  removeUrl: (index: number) => void
+  updateUrl: (index: number, val: string) => void
+  urlResults: UrlSummaryResult[] | null
+  setUrlResults: (v: UrlSummaryResult[] | null) => void
 
   // --- Shared ---
   length: SummaryLength
@@ -44,6 +53,29 @@ export function useSummarizer(): UseSummarizerReturn {
   const [pdfMeta, setPdfMeta] = useState<PdfMeta | null>(null)
   const [pdfText, setPdfText] = useState("")
 
+  // URL mode
+  const [urls, setUrls] = useState<string[]>([""])
+  const [urlResults, setUrlResults] = useState<UrlSummaryResult[] | null>(null)
+
+  function addUrl() {
+    setUrls((prev) => [...prev, ""])
+  }
+
+  function removeUrl(index: number) {
+    setUrls((prev) => {
+      const filtered = prev.filter((_, i) => i !== index)
+      return filtered.length ? filtered : [""]
+    })
+  }
+
+  function updateUrl(index: number, val: string) {
+    setUrls((prev) => {
+      const copy = [...prev]
+      copy[index] = val
+      return copy
+    })
+  }
+
   // Shared
   const [length, setLength]   = useState<SummaryLength>("sedang")
   const [result, setResult]   = useState<SummaryResult | null>(null)
@@ -55,7 +87,9 @@ export function useSummarizer(): UseSummarizerReturn {
   const canSubmit = !loading && (
     mode === "text"
       ? text.trim().length >= MIN_TEXT_LENGTH
-      : pdfText.trim().length >= MIN_TEXT_LENGTH
+      : mode === "pdf"
+        ? pdfText.trim().length >= MIN_TEXT_LENGTH
+        : urls.some((url) => url.trim().length > 0)
   )
 
   function setPdfData(file: File, meta: PdfMeta, extractedText: string) {
@@ -75,27 +109,43 @@ export function useSummarizer(): UseSummarizerReturn {
     setLoading(true)
     setError("")
     setResult(null)
+    setUrlResults(null)
 
     try {
-      const payload =
-        mode === "pdf" && pdfMeta
-          ? {
-              text:     pdfText,
-              length,
-              mode:     "pdf" as const,
-              filename: pdfMeta.filename,
-              pages:    pdfMeta.pages,
-              chars:    pdfMeta.chars,
-            }
-          : { text, length, mode: "text" as const }
+      if (mode === "url") {
+        const activeUrls = urls.filter((url) => url.trim() !== "")
+        const res = await fetch("/api/summarize-urls", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ urls: activeUrls, length }),
+        })
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}))
+          throw new Error(body.error ?? "Gagal meringkas URL")
+        }
+        const data = await res.json()
+        setUrlResults(data.results)
+      } else {
+        const payload =
+          mode === "pdf" && pdfMeta
+            ? {
+                text:     pdfText,
+                length,
+                mode:     "pdf" as const,
+                filename: pdfMeta.filename,
+                pages:    pdfMeta.pages,
+                chars:    pdfMeta.chars,
+              }
+            : { text, length, mode: "text" as const }
 
-      const data = await fetchSummary(payload)
+        const data = await fetchSummary(payload)
 
-      setResult({
-        ...data,
-        originalText: mode === "pdf" ? pdfText : text,
-        pdfMeta: mode === "pdf" ? pdfMeta ?? undefined : undefined,
-      })
+        setResult({
+          ...data,
+          originalText: mode === "pdf" ? pdfText : text,
+          pdfMeta: mode === "pdf" ? pdfMeta ?? undefined : undefined,
+        })
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Terjadi kesalahan, coba lagi")
     } finally {
@@ -107,6 +157,7 @@ export function useSummarizer(): UseSummarizerReturn {
     mode, setMode,
     text, setText, wordCount,
     pdfFile, pdfMeta, pdfText, setPdfData, clearPdf,
+    urls, setUrls, addUrl, removeUrl, updateUrl, urlResults, setUrlResults,
     length, setLength,
     result, setResult, loading, error,
     canSubmit, handleSubmit,
