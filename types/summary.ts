@@ -20,7 +20,14 @@ export type CategoryType =
   | "manual"
   | "penelitian"
 
-export type SummaryMode = "text" | "pdf"
+export type SummaryMode = "text" | "pdf" | "url"
+
+export interface UrlSummaryResult {
+  url: string
+  success: boolean
+  data?: SummaryResult
+  error?: string
+}
 
 export interface PdfMeta {
   filename: string
