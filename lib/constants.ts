@@ -18,3 +18,8 @@ export const MIN_TEXT_LENGTH = 50
 export const MAX_PDF_CHARS   = 7_500
 export const MAX_PDF_SIZE_MB = 3
 export const MAX_PDF_SIZE_BYTES = MAX_PDF_SIZE_MB * 1024 * 1024
+
+export const MAX_URLS = 5
+export const FETCH_TIMEOUT_MS = 8000
+export const MAX_FETCH_SIZE_BYTES = 1024 * 1024 // 1MB
+

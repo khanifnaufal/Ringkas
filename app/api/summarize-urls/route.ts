@@ -1,6 +1,7 @@
 import { generateObject } from "ai"
 import { google } from "@ai-sdk/google"
 import { SummarySchema } from "../summarize/route"
+import { MAX_URLS, FETCH_TIMEOUT_MS, MAX_FETCH_SIZE_BYTES } from "@/lib/constants"
 
 export const maxDuration = 60
 
@@ -41,6 +42,13 @@ export async function POST(req: Request) {
       )
     }
 
+    if (urls.length > MAX_URLS) {
+      return Response.json(
+        { error: `Jumlah URL melebihi batas maksimal (${MAX_URLS} URL)` },
+        { status: 400 }
+      )
+    }
+
     const lengthGuide = LENGTH_MAP[length] ?? LENGTH_MAP["sedang"]
 
     const results = await Promise.all(
@@ -54,19 +62,61 @@ export async function POST(req: Request) {
           }
         }
 
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => {
+          try {
+            controller.abort()
+          } catch {}
+        }, FETCH_TIMEOUT_MS)
+
         try {
           const response = await fetch(trimmedUrl, {
             headers: {
               "User-Agent":
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             },
+            signal: controller.signal,
           })
 
           if (!response.ok) {
             throw new Error(`Gagal memuat URL (HTTP ${response.status})`)
           }
 
-          const html = await response.text()
+          let html = ""
+          if (response.body && typeof response.body.getReader === "function") {
+            const reader = response.body.getReader()
+            const decoder = new TextDecoder()
+            let totalBytes = 0
+
+            try {
+              while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
+
+                if (value) {
+                  totalBytes += value.length
+                  if (totalBytes > MAX_FETCH_SIZE_BYTES) {
+                    const allowedLength = value.length - (totalBytes - MAX_FETCH_SIZE_BYTES)
+                    if (allowedLength > 0) {
+                      html += decoder.decode(value.subarray(0, allowedLength), { stream: true })
+                    }
+                    await reader.cancel("Response body size limit exceeded")
+                    break
+                  }
+                  html += decoder.decode(value, { stream: true })
+                }
+              }
+            } finally {
+              reader.releaseLock()
+            }
+            html += decoder.decode()
+          } else {
+            html = await response.text()
+            if (html.length > MAX_FETCH_SIZE_BYTES) {
+              html = html.substring(0, MAX_FETCH_SIZE_BYTES)
+            }
+          }
+
           const cleanText = extractCleanText(html)
 
           if (cleanText.length < 50) {
@@ -104,11 +154,21 @@ ${cleanText.slice(0, 8000)}`
             data: object,
           }
         } catch (error) {
+          let errorMessage = "Terjadi kesalahan saat meringkas"
+          if (error instanceof Error) {
+            if (error.name === "AbortError") {
+              errorMessage = "Koneksi timeout atau ukuran halaman terlalu besar"
+            } else {
+              errorMessage = error.message
+            }
+          }
           return {
             url: trimmedUrl,
             success: false,
-            error: error instanceof Error ? error.message : "Terjadi kesalahan saat meringkas",
+            error: errorMessage,
           }
+        } finally {
+          clearTimeout(timeoutId)
         }
       })
     )

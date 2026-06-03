@@ -7,6 +7,7 @@ import { PdfUploadPanel } from "@/components/summarizer/PdfUploadPanel"
 import { SummaryLength, SummaryMode, PdfMeta } from "@/types/summary"
 import { FileText, Type, AlertCircle, Loader2, Link2, Plus, Trash2 } from "lucide-react"
 import { motion, AnimatePresence } from "motion/react"
+import { MAX_URLS } from "@/lib/constants"
 
 interface InputPanelProps {
   // Mode
@@ -184,7 +185,7 @@ export function InputPanel({
           >
             <div className="flex flex-col gap-2.5">
               <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                Masukkan URL Artikel/Web
+                Masukkan URL Artikel/Web (Maks. {MAX_URLS})
               </label>
               
               <AnimatePresence initial={false}>
@@ -227,6 +228,7 @@ export function InputPanel({
                 variant="outline"
                 size="sm"
                 onClick={onAddUrl}
+                disabled={urls.length >= MAX_URLS}
                 className="text-xs h-8 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5 mr-1" />

@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { SummaryLength, SummaryResult, SummaryMode, PdfMeta, UrlSummaryResult } from "@/types/summary"
 import { fetchSummary } from "@/services/summarize.service"
-import { MIN_TEXT_LENGTH } from "@/lib/constants"
+import { MIN_TEXT_LENGTH, MAX_URLS } from "@/lib/constants"
 
 interface UseSummarizerReturn {
   // --- Mode ---
@@ -58,6 +58,7 @@ export function useSummarizer(): UseSummarizerReturn {
   const [urlResults, setUrlResults] = useState<UrlSummaryResult[] | null>(null)
 
   function addUrl() {
+    if (urls.length >= MAX_URLS) return
     setUrls((prev) => [...prev, ""])
   }
 
