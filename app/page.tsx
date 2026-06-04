@@ -7,10 +7,25 @@ import { InputPanel } from "@/components/summarizer/InputPanel"
 import { ResultPanel } from "@/components/summarizer/ResultPanel"
 import { Navbar } from "@/components/layout/Navbar"
 import { CollectionsSidebar } from "@/components/collections/CollectionsSidebar"
+import { motion } from "motion/react"
 
 export default function Home() {
   const summarizer = useSummarizer()
   const [activeSummaryId, setActiveSummaryId] = useState<string | undefined>(undefined)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+
+  useEffect(() => {
+    const saved = localStorage.getItem("sidebar_collapsed")
+    if (saved !== null) {
+      setIsSidebarCollapsed(saved === "true")
+    }
+  }, [])
+
+  const toggleSidebar = () => {
+    const nextState = !isSidebarCollapsed
+    setIsSidebarCollapsed(nextState)
+    localStorage.setItem("sidebar_collapsed", String(nextState))
+  }
 
   const handleSelectSummary = (summary: any) => {
     setActiveSummaryId(summary._id)
@@ -53,17 +68,27 @@ export default function Home() {
       <main className="max-w-4xl lg:max-w-6xl xl:max-w-7xl mx-auto px-4 sm:px-6 md:px-8 py-10 md:py-16 lg:py-20 w-full">
         <AppHeader />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-start w-full">
-          {/* ── 1. Collections Sidebar (3/12 columns) ──────────────────────── */}
-          <div className="lg:col-span-3 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start w-full">
+          {/* ── 1. Collections Sidebar ─────────────────────────────────────── */}
+          <motion.div
+            layout
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className={`${isSidebarCollapsed ? "lg:col-span-1" : "lg:col-span-3"} w-full`}
+          >
             <CollectionsSidebar
               onSelectSummary={handleSelectSummary}
               activeSummaryId={activeSummaryId}
+              isCollapsed={isSidebarCollapsed}
+              onToggleCollapse={toggleSidebar}
             />
-          </div>
+          </motion.div>
 
           {/* ── 2. Input Panel (4/12 columns) ──────────────────────────────── */}
-          <div className="lg:col-span-4 w-full min-w-0">
+          <motion.div
+            layout
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className="lg:col-span-4 w-full min-w-0"
+          >
             <InputPanel
               mode={summarizer.mode}
               onModeChange={summarizer.setMode}
@@ -85,10 +110,14 @@ export default function Home() {
               error={summarizer.error}
               onSubmit={handleSubmit}
             />
-          </div>
+          </motion.div>
 
-          {/* ── 3. Result Panel (5/12 columns) ─────────────────────────────── */}
-          <div className="lg:col-span-5 w-full min-w-0">
+          {/* ── 3. Result Panel ────────────────────────────────────────────── */}
+          <motion.div
+            layout
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className={`${isSidebarCollapsed ? "lg:col-span-7" : "lg:col-span-5"} w-full min-w-0`}
+          >
             <ResultPanel
               result={summarizer.result}
               loading={summarizer.loading}
@@ -96,7 +125,7 @@ export default function Home() {
               mode={summarizer.mode}
               urlResults={summarizer.urlResults}
             />
-          </div>
+          </motion.div>
         </div>
       </main>
     </>
