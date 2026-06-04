@@ -14,8 +14,8 @@ export function getArticleTitle(url: string): string {
       const lastPart = pathParts[pathParts.length - 1]
       const cleanTitle = lastPart
         .replace(/[-_]/g, " ")
-        .replace(/\.[a-zA-Z0-9]+$/, "")
-      
+        .replace(/\.(html?|php|aspx?|jsp)$/i, "")
+
       if (cleanTitle.length > 2) {
         return cleanTitle
           .split(" ")

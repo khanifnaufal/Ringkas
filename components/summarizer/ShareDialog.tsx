@@ -50,6 +50,10 @@ export function ShareDialog({ summary, keyPoints, trigger }: ShareDialogProps) {
   ].join("\n")
 
   async function handleCopy() {
+    if (!navigator.clipboard) {
+      toast.error("Clipboard API tidak tersedia di browser ini.")
+      return
+    }
     try {
       await navigator.clipboard.writeText(textToShare)
       setCopied(true)
