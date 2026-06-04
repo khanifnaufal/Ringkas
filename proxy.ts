@@ -37,7 +37,7 @@ function isOriginAllowed(origin: string | null, host: string | null): boolean {
     if (host && originUrl.host !== host) {
       // Allow localhost in development
       if (originUrl.hostname === "localhost" || originUrl.hostname === "127.0.0.1") {
-        return true
+        return process.env.NODE_ENV === "development" || process.env.ALLOW_LOCALHOST_DEV === "true"
       }
       return false
     }
