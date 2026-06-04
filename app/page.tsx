@@ -62,6 +62,11 @@ export default function Home() {
     await summarizer.handleSubmit()
   };
 
+  const isSplitLayout =
+    summarizer.mode === "url" &&
+    summarizer.urlResults &&
+    summarizer.urlResults.length > 1;
+
   return (
     <>
       <Navbar />
