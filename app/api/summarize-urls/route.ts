@@ -31,6 +31,39 @@ function extractCleanText(html: string): string {
     .trim()
 }
 
+function isPrivateHostname(hostname: string): boolean {
+  const h = hostname.toLowerCase().trim()
+  if (
+    h === "localhost" ||
+    h === "127.0.0.1" ||
+    h === "::1" ||
+    h === "0.0.0.0"
+  ) {
+    return true
+  }
+  if (
+    h.endsWith(".local") ||
+    h.endsWith(".internal") ||
+    h.endsWith(".lan") ||
+    h.endsWith(".test")
+  ) {
+    return true
+  }
+  if (h.startsWith("10.")) return true
+  if (h.startsWith("192.168.")) return true
+  if (h.startsWith("169.254.")) return true
+  if (h.startsWith("172.")) {
+    const parts = h.split(".")
+    if (parts.length >= 2) {
+      const secondPart = parseInt(parts[1], 10)
+      if (secondPart >= 16 && secondPart <= 31) {
+        return true
+      }
+    }
+  }
+  return false
+}
+
 export async function POST(req: Request) {
   try {
     const { urls, length } = await req.json()
@@ -59,6 +92,19 @@ export async function POST(req: Request) {
             url: "",
             success: false,
             error: "URL tidak valid",
+          }
+        }
+
+        try {
+          const parsedUrl = new URL(trimmedUrl)
+          if (isPrivateHostname(parsedUrl.hostname)) {
+            throw new Error("URL merujuk pada alamat jaringan lokal yang dilarang.")
+          }
+        } catch (e) {
+          return {
+            url: trimmedUrl,
+            success: false,
+            error: e instanceof Error ? e.message : "Format URL tidak valid",
           }
         }
 
