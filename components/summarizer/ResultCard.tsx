@@ -14,31 +14,33 @@ import { SaveDropdown } from "./SaveDropdown"
 interface ResultCardProps {
   data: SummaryResult & { _id?: string; collectionId?: string; originalText?: string }
   className?: string
+  skipTypewriter?: boolean
 }
 
-export function ResultCard({ data, className }: ResultCardProps) {
+export function ResultCard({ data, className, skipTypewriter = false }: ResultCardProps) {
   const isFromCollection = !!data._id
+  const shouldSkipTypewriter = isFromCollection || skipTypewriter
   const { displayed: typedText, isDone: typewriteDone } = useTypewriter(data.summary, { speed: 14 })
 
-  const displayed = isFromCollection ? data.summary : typedText
-  const isDone = isFromCollection ? true : typewriteDone
+  const displayed = shouldSkipTypewriter ? data.summary : typedText
+  const isDone = shouldSkipTypewriter ? true : typewriteDone
 
   const [askOpen, setAskOpen] = useState(false)
-  const [revealCount, setRevealCount] = useState(isFromCollection ? data.keyPoints.length : 0)
+  const [revealCount, setRevealCount] = useState(shouldSkipTypewriter ? data.keyPoints.length : 0)
 
   // Reset key-point reveal counter whenever new data arrives
   useEffect(() => {
-    setRevealCount(isFromCollection ? data.keyPoints.length : 0)
-  }, [data.summary, isFromCollection, data.keyPoints.length])
+    setRevealCount(shouldSkipTypewriter ? data.keyPoints.length : 0)
+  }, [data.summary, shouldSkipTypewriter, data.keyPoints.length])
 
   // Stagger-reveal key points one by one after typewriter finishes (only if not from collection)
   useEffect(() => {
-    if (isFromCollection || !isDone) return
+    if (shouldSkipTypewriter || !isDone) return
     const timers = data.keyPoints.map((_, i) =>
       setTimeout(() => setRevealCount(i + 1), i * 160)
     )
     return () => timers.forEach(clearTimeout)
-  }, [isDone, data.keyPoints, isFromCollection])
+  }, [isDone, data.keyPoints, shouldSkipTypewriter])
 
   const isFullyRevealed = isDone && revealCount >= data.keyPoints.length
   const summaryId = data._id

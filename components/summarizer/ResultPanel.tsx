@@ -26,7 +26,7 @@ export function ResultPanel({
   urlResults,
 }: ResultPanelProps) {
   const [selectedUrl, setSelectedUrl] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<"list" | "detail">("list")
+  const [activeTab, setActiveTab] = useState<"list" | "detail" | "compare">("list")
 
   const hasUrlResults = mode === "url" && urlResults && urlResults.length > 0
   const isSplitLayout = mode === "url" && urlResults && urlResults.length > 1
