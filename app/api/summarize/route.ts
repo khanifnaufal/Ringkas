@@ -35,6 +35,13 @@ export async function POST(req: Request) {
     )
   }
 
+  if (text.length > 50000) {
+    return Response.json(
+      { error: "Teks terlalu panjang (maksimum 50.000 karakter)" },
+      { status: 400 }
+    )
+  }
+
   const lengthGuide = LENGTH_MAP[length] ?? LENGTH_MAP["sedang"]
 
   const prompt = mode === "pdf"

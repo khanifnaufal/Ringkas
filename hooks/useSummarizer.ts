@@ -2,8 +2,8 @@
 
 import { useState } from "react"
 import { SummaryLength, SummaryResult, SummaryMode, PdfMeta, UrlSummaryResult } from "@/types/summary"
-import { fetchSummary } from "@/services/summarize.service"
 import { MIN_TEXT_LENGTH, MAX_URLS } from "@/lib/constants"
+import { toast } from "sonner"
 
 interface UseSummarizerReturn {
   // --- Mode ---
@@ -122,7 +122,16 @@ export function useSummarizer(): UseSummarizerReturn {
         })
         if (!res.ok) {
           const body = await res.json().catch(() => ({}))
-          throw new Error(body.error ?? "Gagal meringkas URL")
+          if (res.status === 429) {
+            toast.error(body.message || "Batas kuota terlampaui.", {
+              duration: 6000,
+              action: body.isGuest ? {
+                label: "Login",
+                onClick: () => window.location.href = "/sign-in"
+              } : undefined
+            })
+          }
+          throw new Error(body.error ?? body.message ?? "Gagal meringkas URL")
         }
         const data = await res.json()
         setUrlResults(data.results)
@@ -139,7 +148,27 @@ export function useSummarizer(): UseSummarizerReturn {
               }
             : { text, length, mode: "text" as const }
 
-        const data = await fetchSummary(payload)
+        const res = await fetch("/api/summarize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        })
+
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}))
+          if (res.status === 429) {
+            toast.error(body.message || "Batas kuota terlampaui.", {
+              duration: 6000,
+              action: body.isGuest ? {
+                label: "Login",
+                onClick: () => window.location.href = "/sign-in"
+              } : undefined
+            })
+          }
+          throw new Error(body.error ?? body.message ?? "Terjadi error, coba lagi")
+        }
+
+        const data = await res.json()
 
         setResult({
           ...data,
