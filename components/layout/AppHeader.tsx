@@ -2,7 +2,7 @@
 
 import Image from "next/image"
 
-import { useLanguage } from "`@/components/providers/LanguageProvider`"
+import { useLanguage } from "@/components/providers/LanguageProvider"
 
 export function AppHeader() {
   const { t } = useLanguage()
