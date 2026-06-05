@@ -31,6 +31,7 @@ const askRequestSchema = z.object({
     .max(255, "Nama file terlalu panjang")
     .regex(/^[^/\\:\*\?"<>\|]+$/, "Nama file mengandung karakter tidak valid")
     .optional(),
+  language: z.string().optional(),
 })
 
 export async function POST(req: Request) {
@@ -48,11 +49,27 @@ export async function POST(req: Request) {
       )
     }
 
-    const { messages, context, filename } = parsed.data
+    const { messages, context, filename, language } = parsed.data
     const trimmedFilename = filename?.trim()
     const trimmedContext = context?.trim()
+    const lang = language === "en" ? "en" : "id"
 
-    const systemPrompt = `Kamu adalah asisten tanya-jawab yang HANYA menjawab berdasarkan teks/konteks yang diberikan di bawah.
+    const systemPrompt = lang === "en"
+      ? `You are a Q&A assistant that ONLY answers based on the text/context provided below.
+
+${trimmedFilename ? `Document: "${trimmedFilename}"` : ""}
+
+IMPORTANT RULES:
+- Answer ONLY using the information in the following CONTEXT.
+- If the question cannot be answered from the context, say: "Information is not available in this text."
+- Use clear and natural English.
+- Provide a response of at most 3-4 sentences. Go straight to the point.
+- Do not make up or add information outside the context.
+- Do not mention that you read the "context" — just answer directly.
+
+CONTEXT:
+${trimmedContext?.slice(0, 10000) ?? "(no context)"}`
+      : `Kamu adalah asisten tanya-jawab yang HANYA menjawab berdasarkan teks/konteks yang diberikan di bawah.
 
 ${trimmedFilename ? `Dokumen: "${trimmedFilename}"` : ""}
 

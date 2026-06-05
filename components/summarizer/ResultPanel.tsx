@@ -18,6 +18,8 @@ interface ResultPanelProps {
   urlResults?: UrlSummaryResult[] | null
 }
 
+import { useLanguage } from "@/components/providers/LanguageProvider"
+
 export function ResultPanel({
   result,
   loading,
@@ -25,6 +27,7 @@ export function ResultPanel({
   mode,
   urlResults,
 }: ResultPanelProps) {
+  const { t } = useLanguage()
   const [selectedUrl, setSelectedUrl] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<"list" | "detail" | "compare">("list")
 
@@ -105,7 +108,7 @@ export function ResultPanel({
               >
                 <div className="text-xs font-semibold truncate text-muted-foreground bg-muted/30 border border-border/30 rounded-lg px-3 py-2 flex items-center justify-between gap-2">
                   <span className="truncate">
-                    Sumber:{" "}
+                    {t("result.source")}:{" "}
                     <a
                       href={res.url}
                       target="_blank"
@@ -120,7 +123,7 @@ export function ResultPanel({
                   <ResultCard data={res.data} className="shadow-md bg-card" />
                 ) : (
                   <div className="p-4 rounded-xl border border-destructive/20 bg-destructive/10 text-destructive text-xs leading-relaxed">
-                    Gagal meringkas URL: {res.error || "Terjadi kesalahan"}
+                    {t("result.failUrl")}: {res.error || "Terjadi kesalahan"}
                   </div>
                 )}
               </div>
@@ -133,7 +136,7 @@ export function ResultPanel({
             className="w-full text-xs font-semibold h-10 border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 transition-all shadow-sm"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Mulai Ringkasan Baru
+            {t("result.newSummary")}
           </Button>
         </div>
       ) : result ? (
@@ -145,7 +148,7 @@ export function ResultPanel({
             className="w-full text-xs font-semibold h-10 border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 transition-all shadow-sm"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Mulai Ringkasan Baru
+            {t("result.newSummary")}
           </Button>
         </div>
       ) : (

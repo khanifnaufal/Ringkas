@@ -8,6 +8,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
+import { useLanguage } from "@/components/providers/LanguageProvider"
 import { SENTIMENT_COLORS } from "@/lib/constants"
 import {
   Loader2,
@@ -65,13 +66,15 @@ function getTitleKey(item: HistoryItem): string {
   return item.pdfMeta?.filename ?? item.originalText.slice(0, 60)
 }
 
-function sortItems(items: HistoryItem[], sort: SortOption): HistoryItem[] {
+// Locale-aware sort comparing
+function sortItems(items: HistoryItem[], sort: SortOption, lang: string): HistoryItem[] {
   const copy = [...items]
+  const locale = lang === "id" ? "id" : "en"
   switch (sort) {
     case "newest":  return copy.sort((a, b) => b.createdAt - a.createdAt)
     case "oldest":  return copy.sort((a, b) => a.createdAt - b.createdAt)
-    case "az":      return copy.sort((a, b) => getTitleKey(a).localeCompare(getTitleKey(b), "id"))
-    case "za":      return copy.sort((a, b) => getTitleKey(b).localeCompare(getTitleKey(a), "id"))
+    case "az":      return copy.sort((a, b) => getTitleKey(a).localeCompare(getTitleKey(b), locale))
+    case "za":      return copy.sort((a, b) => getTitleKey(b).localeCompare(getTitleKey(a), locale))
     default:        return copy
   }
 }
@@ -79,6 +82,7 @@ function sortItems(items: HistoryItem[], sort: SortOption): HistoryItem[] {
 // ── Main Component ────────────────────────────────────────────────────────────
 export function HistoryPage() {
   const { isLoading, isAuthenticated } = useConvexAuth()
+  const { t, uiLanguage } = useLanguage()
   const collections  = useQuery(api.collections.list)
   const allSummaries = useQuery(api.summaries.listAll, {})
   const removeSummary = useMutation(api.summaries.remove)
@@ -130,8 +134,8 @@ export function HistoryPage() {
       )
     }
 
-    return sortItems(items, sort)
-  }, [allSummaries, category, sentiment, typeFilter, search, sort])
+    return sortItems(items, sort, uiLanguage)
+  }, [allSummaries, category, sentiment, typeFilter, search, sort, uiLanguage])
 
   // ── Collection name lookup ────────────────────────────────────────────────
   const collectionMap = useMemo(() => {
@@ -156,13 +160,13 @@ export function HistoryPage() {
     setDeleteTarget(null)
     try {
       await removeSummary({ id: id as any })
-      toast.success(`Ringkasan "${title}" berhasil dihapus`)
+      toast.success(t("history.deleteSuccess").replace("{name}", title))
       // Close preview modal if deleting currently opened item
       if (previewItem?._id === id) {
         setPreviewItem(null)
       }
     } catch (err) {
-      toast.error(`Gagal menghapus: ${err instanceof Error ? err.message : "Terjadi kesalahan"}`)
+      toast.error(t("history.deleteError").replace("{error}", err instanceof Error ? err.message : "Terjadi kesalahan"))
     }
   }
 
@@ -181,12 +185,12 @@ export function HistoryPage() {
         <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary animate-pulse shadow-md">
           <Lock className="w-6 h-6" />
         </div>
-        <h2 className="text-xl font-semibold">History Terkunci</h2>
+        <h2 className="text-xl font-semibold">{t("history.lockedTitle")}</h2>
         <p className="text-sm text-muted-foreground max-w-xs leading-relaxed">
-          Masuk terlebih dahulu untuk melihat semua ringkasan yang pernah kamu simpan.
+          {t("history.lockedDesc")}
         </p>
         <Button asChild size="sm" className="mt-2">
-          <Link href="/sign-in">Masuk Sekarang</Link>
+          <Link href="/sign-in">{t("col.signInNow")}</Link>
         </Button>
       </div>
     )
@@ -210,10 +214,10 @@ export function HistoryPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             <History className="w-6 h-6 text-primary" />
-            Riwayat Ringkasan
+            {t("history.title")}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Semua ringkasan yang pernah kamu simpan, di satu tempat.
+            {t("history.subtitle")}
           </p>
         </div>
       </div>
@@ -247,22 +251,22 @@ export function HistoryPage() {
         /* Never saved anything */
         <div className="flex flex-col items-center justify-center min-h-[40vh] gap-3 text-center border-2 border-dashed border-border/40 rounded-2xl bg-muted/10 p-10">
           <BookOpen className="w-10 h-10 text-muted-foreground/30" />
-          <h3 className="font-semibold text-muted-foreground">Belum ada ringkasan tersimpan</h3>
+          <h3 className="font-semibold text-muted-foreground">{t("history.emptyTitle")}</h3>
           <p className="text-sm text-muted-foreground/70 max-w-xs leading-relaxed">
-            Buat ringkasan pertamamu dan simpan ke koleksi. Semua ringkasan tersimpan akan muncul di sini.
+            {t("history.emptyDesc2")}
           </p>
           <Button asChild size="sm" className="mt-2" id="history-goto-home">
-            <Link href="/">Buat Ringkasan</Link>
+            <Link href="/">{t("history.createSummary")}</Link>
           </Button>
         </div>
       ) : filtered.length === 0 ? (
         /* Saved items exist but filter returned nothing */
         <div className="flex flex-col items-center justify-center min-h-[30vh] gap-2 text-center border-2 border-dashed border-border/40 rounded-2xl bg-muted/10 p-10">
           <BookOpen className="w-8 h-8 text-muted-foreground/30" />
-          <p className="font-medium text-muted-foreground">Tidak ada hasil yang cocok</p>
-          <p className="text-xs text-muted-foreground/60">Coba ubah kata kunci atau filter</p>
+          <p className="font-medium text-muted-foreground">{t("history.noResults")}</p>
+          <p className="text-xs text-muted-foreground/60">{t("history.noResultsDesc")}</p>
           <Button variant="ghost" size="sm" onClick={handleReset} className="mt-1 text-xs" id="history-reset-empty">
-            Reset Filter
+            {t("history.clearFilter")}
           </Button>
         </div>
       ) : (
@@ -271,7 +275,7 @@ export function HistoryPage() {
             <HistoryCard
               key={item._id}
               item={item as HistoryItem}
-              collectionName={item.collectionId ? collectionMap[item.collectionId] : "📥 Tanpa Kategori"}
+              collectionName={item.collectionId ? collectionMap[item.collectionId] : "📥 " + t("col.uncategorized")}
               onOpen={triggerPreview}
               onDelete={(id, title) => setDeleteTarget({ id, title })}
             />
@@ -283,18 +287,18 @@ export function HistoryPage() {
       <AlertDialog open={!!deleteTarget} onOpenChange={open => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus ringkasan?</AlertDialogTitle>
+            <AlertDialogTitle>{t("history.deleteConfirmTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              "<strong>{deleteTarget?.title}</strong>" akan dihapus secara permanen dan tidak dapat dikembalikan.
+              {t("history.deleteConfirmDesc2").replace("{name}", deleteTarget?.title ?? "")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogCancel>{t("history.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Hapus
+              {t("history.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -325,21 +329,21 @@ export function HistoryPage() {
                   {/* Badges row */}
                   <div className="flex flex-wrap items-center gap-2 mt-3">
                     <Badge variant="outline" className="text-xs capitalize px-2.5 py-0.5">
-                      {previewItem.category}
+                      {t("cat." + previewItem.category.toLowerCase()) || previewItem.category}
                     </Badge>
                     <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium capitalize ${
                       SENTIMENT_COLORS[previewItem.sentiment as keyof typeof SENTIMENT_COLORS] ?? "bg-gray-100 text-gray-700"
                     }`}>
-                      {previewItem.sentiment}
+                      {t("result.sentiment." + previewItem.sentiment.toLowerCase()) || previewItem.sentiment}
                     </span>
                     {previewItem.pdfMeta && (
                       <span className="text-xs px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400 font-medium">
-                        {previewItem.pdfMeta.pages} Halaman
+                        {previewItem.pdfMeta.pages} {t("pdf.pages").charAt(0).toUpperCase() + t("pdf.pages").slice(1)}
                       </span>
                     )}
                     <span className="text-xs text-muted-foreground flex items-center gap-1 bg-muted/65 px-2.5 py-0.5 rounded-full">
                       <Clock className="w-3.5 h-3.5 text-muted-foreground/80" />
-                      ~{previewItem.readingTime} menit
+                      ~{previewItem.readingTime} {t("result.minutes")}
                     </span>
                   </div>
                 </div>
@@ -358,7 +362,7 @@ export function HistoryPage() {
             <div className="flex-1 overflow-y-auto p-6 space-y-5 scrollbar-thin">
               {/* Summary */}
               <div>
-                <h3 className="text-xs uppercase font-bold text-muted-foreground tracking-wider mb-2">Ringkasan</h3>
+                <h3 className="text-xs uppercase font-bold text-muted-foreground tracking-wider mb-2">{t("result.title")}</h3>
                 <div className="p-4 rounded-xl border border-border/50 bg-muted/20 text-sm leading-relaxed text-foreground select-text whitespace-pre-wrap">
                   {previewItem.summary}
                 </div>
@@ -367,7 +371,7 @@ export function HistoryPage() {
               {/* Key points */}
               {previewItem.keyPoints && previewItem.keyPoints.length > 0 && (
                 <div>
-                  <h3 className="text-xs uppercase font-bold text-muted-foreground tracking-wider mb-2">Poin-poin Penting</h3>
+                  <h3 className="text-xs uppercase font-bold text-muted-foreground tracking-wider mb-2">{t("result.keyPoints")}</h3>
                   <ul className="space-y-2">
                     {previewItem.keyPoints.map((pt, i) => (
                       <li key={i} className="flex gap-2 text-sm text-foreground select-text">
@@ -385,12 +389,12 @@ export function HistoryPage() {
                   onClick={() => setShowOriginal(p => !p)}
                   className="flex items-center justify-between w-full py-2 text-xs uppercase font-bold text-muted-foreground hover:text-foreground tracking-wider transition-colors cursor-pointer"
                 >
-                  <span>Teks Asli</span>
+                  <span>{t("result.originalText")}</span>
                   {showOriginal ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </button>
                 {showOriginal && (
                   <div className="mt-2 max-h-48 overflow-y-auto p-3 text-xs bg-muted/40 border border-border/40 rounded-lg text-muted-foreground font-sans whitespace-pre-wrap select-text leading-relaxed">
-                    {previewItem.originalText || "Teks asli tidak tersedia."}
+                    {previewItem.originalText || t("result.noOriginalText")}
                   </div>
                 )}
               </div>
@@ -400,7 +404,7 @@ export function HistoryPage() {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-5 border-t border-border/60 bg-muted/10">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Calendar className="w-3.5 h-3.5" />
-                <span>Disimpan pada {new Date(previewItem.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</span>
+                <span>{t("history.savedOn").replace("{date}", new Date(previewItem.createdAt).toLocaleDateString(uiLanguage === "id" ? "id-ID" : "en-US", { day: "numeric", month: "long", year: "numeric" }))}</span>
               </div>
 
               <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -412,7 +416,7 @@ export function HistoryPage() {
                   className="text-xs h-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
                 >
                   <Trash2 className="w-4 h-4 mr-1" />
-                  Hapus
+                  {t("history.delete")}
                 </Button>
 
                 {/* Tanya */}
@@ -423,7 +427,7 @@ export function HistoryPage() {
                   className="flex-1 sm:flex-initial text-xs h-9 hover:text-teal-600 hover:border-teal-500/30 hover:bg-teal-500/10 cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4 mr-1" />
-                  Tanya
+                  {t("result.ask")}
                 </Button>
 
                 {/* Copy */}
@@ -435,21 +439,21 @@ export function HistoryPage() {
                       const textToCopy = [
                         previewItem.summary,
                         "",
-                        "Poin Penting:",
+                        `${t("result.keyPoints")}:`,
                         ...previewItem.keyPoints.map(p => `• ${p}`)
                       ].join("\n")
                       await navigator.clipboard.writeText(textToCopy)
                       setCopied(true)
-                      toast.success("Ringkasan disalin ke clipboard")
+                      toast.success(t("result.copySuccess"))
                       setTimeout(() => setCopied(false), 2000)
                     } catch {
-                      toast.error("Gagal menyalin ringkasan")
+                      toast.error(t("result.copyError"))
                     }
                   }}
                   className="flex-1 sm:flex-initial text-xs h-9 cursor-pointer"
                 >
                   {copied ? <Check className="w-3.5 h-3.5 mr-1.5 text-teal-600" /> : <Copy className="w-3.5 h-3.5 mr-1.5" />}
-                  {copied ? "Copied" : "Salin Teks"}
+                  {copied ? t("result.copied") : t("result.copyText")}
                 </Button>
 
                 {/* Open in main dashboard */}
@@ -462,7 +466,7 @@ export function HistoryPage() {
                   className="flex-1 sm:flex-initial text-xs h-9 bg-primary text-primary-foreground hover:bg-primary/90 gap-1 cursor-pointer"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
-                  Buka di Dashboard
+                  {t("history.openInDashboard")}
                 </Button>
               </div>
             </div>

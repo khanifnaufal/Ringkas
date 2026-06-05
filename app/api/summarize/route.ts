@@ -5,8 +5,8 @@ import { z } from "zod"
 export const maxDuration = 60
 
 export const SummarySchema = z.object({
-  summary:     z.string().describe("Ringkasan padat dalam Bahasa Indonesia"),
-  keyPoints:   z.array(z.string()).describe("3-5 poin utama dari teks"),
+  summary:     z.string().describe("Concise summary in the requested language"),
+  keyPoints:   z.array(z.string()).describe("3-5 key points from the text in the requested language"),
   category:    z.enum([
     // teks umum
     "teknologi", "bisnis", "kesehatan", "politik",
@@ -25,8 +25,14 @@ const LENGTH_MAP: Record<string, string> = {
   detail:  "6-8 kalimat yang komprehensif dan menyeluruh",
 }
 
+const LENGTH_MAP_EN: Record<string, string> = {
+  pendek:  "2-3 very short and concise sentences",
+  sedang:  "4-5 informative and easy to understand sentences",
+  detail:  "6-8 comprehensive and thorough sentences",
+}
+
 export async function POST(req: Request) {
-  const { text, length, mode, filename, pages, chars } = await req.json()
+  const { text, length, mode, filename, pages, chars, language } = await req.json()
 
   if (!text || text.trim().length < 50) {
     return Response.json(
@@ -42,10 +48,56 @@ export async function POST(req: Request) {
     )
   }
 
-  const lengthGuide = LENGTH_MAP[length] ?? LENGTH_MAP["sedang"]
+  const lang = language === "en" ? "en" : "id"
+  const lengthGuide = lang === "en"
+    ? (LENGTH_MAP_EN[length] ?? LENGTH_MAP_EN["sedang"])
+    : (LENGTH_MAP[length] ?? LENGTH_MAP["sedang"])
 
-  const prompt = mode === "pdf"
-    ? `Kamu adalah asisten analisis dokumen profesional yang menulis dalam Bahasa Indonesia.
+  const prompt = lang === "en"
+    ? (mode === "pdf"
+        ? `You are a professional document analysis assistant writing in English.
+
+You are analyzing a PDF document titled "${filename}" (${pages} pages).
+
+INSTRUCTIONS:
+- Summary: write a ${lengthGuide} summary covering the objective, main content, and conclusion of the document
+- Key points: extract 3-5 of the most important points from the entire document
+- Category: determine the document type (laporan, makalah, kontrak, presentasi, manual, penelitian, or lainnya - choose from the strict category list)
+- Sentiment: analyze the tone of the document (positif, negatif, or netral)
+- Reading time: estimate based on 200 words per minute of the total text
+
+RULES:
+- Use clear, professional, and natural English
+- Pay attention to the document structure (introduction, body, conclusion) when creating the summary
+- Do not add opinions or information outside the document
+- Regardless of the document's original language, always write the summary and key points in English
+
+DOCUMENT CONTEXT:
+File name: ${filename}
+Total pages: ${pages} pages
+Total characters: ${chars} characters
+
+DOCUMENT CONTENT:
+${text.slice(0, 7500)}`
+        : `You are a professional text summarization assistant writing in English.
+
+INSTRUCTIONS:
+- Summary: write a ${lengthGuide} summary that is concise and easy to understand
+- Key points: extract 3-5 of the most important points, 1 sentence each
+- Category: choose the most suitable category for the content (teknologi, bisnis, kesehatan, politik, sains, olahraga, hiburan, or lainnya)
+- Sentiment: analyze the overall tone of the text (positif, negatif, or netral)
+- Reading time: estimate based on 200 words per minute
+
+RULES:
+- Use clear, professional, and natural English
+- Do not add opinions outside the original text
+- Focus on the core information, not the writing style
+- Regardless of the text's original language, always write the summary and key points in English
+
+TEXT:
+${text.slice(0, 8000)}`)
+    : (mode === "pdf"
+        ? `Kamu adalah asisten analisis dokumen profesional yang menulis dalam Bahasa Indonesia.
 
 Kamu sedang menganalisis dokumen PDF berjudul "${filename}" (${pages} halaman).
 
@@ -69,8 +121,7 @@ Total karakter: ${chars} karakter
 
 ISI DOKUMEN:
 ${text.slice(0, 7500)}`
-
-    : `Kamu adalah asisten ringkasan teks profesional yang menulis dalam Bahasa Indonesia.
+        : `Kamu adalah asisten ringkasan teks profesional yang menulis dalam Bahasa Indonesia.
 
 INSTRUKSI:
 - Ringkasan: tulis ${lengthGuide} yang padat dan mudah dipahami
@@ -86,7 +137,7 @@ ATURAN:
 - Jika teks dalam bahasa lain, tetap buat ringkasan dalam Bahasa Indonesia
 
 TEKS:
-${text.slice(0, 8000)}`
+${text.slice(0, 8000)}`)
 
   const { object } = await generateObject({
     model:  google("gemini-2.5-flash"),

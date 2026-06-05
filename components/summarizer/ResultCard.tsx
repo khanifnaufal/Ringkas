@@ -17,7 +17,10 @@ interface ResultCardProps {
   skipTypewriter?: boolean
 }
 
+import { useLanguage } from "@/components/providers/LanguageProvider"
+
 export function ResultCard({ data, className, skipTypewriter = false }: ResultCardProps) {
+  const { t } = useLanguage()
   const isFromCollection = !!data._id
   const shouldSkipTypewriter = isFromCollection || skipTypewriter
   const { displayed: typedText, isDone: typewriteDone } = useTypewriter(data.summary, { speed: 14 })
@@ -55,14 +58,14 @@ export function ResultCard({ data, className, skipTypewriter = false }: ResultCa
             PDF · {data.pdfMeta.pages}p
           </Badge>
         )}
-        <Badge variant="outline">{data.category}</Badge>
+        <Badge variant="outline">{t(`cat.${data.category}`)}</Badge>
         <span
           className={`text-xs px-2 py-0.5 rounded-full font-medium ${SENTIMENT_COLORS[data.sentiment]}`}
         >
-          {data.sentiment}
+          {t(`result.sentiment.${data.sentiment}`)}
         </span>
         <span className="text-xs text-muted-foreground ml-auto">
-          ~{data.readingTime} mnt baca
+          {t("result.readingTimeLabel").replace("{time}", String(data.readingTime))}
         </span>
       </div>
 
@@ -77,7 +80,7 @@ export function ResultCard({ data, className, skipTypewriter = false }: ResultCa
       {/* Key points — reveal one by one */}
       {isDone && (
         <div>
-          <p className="text-xs text-muted-foreground mb-2">Key points</p>
+          <p className="text-xs text-muted-foreground mb-2">{t("result.keyPoints")}</p>
           <ul className="space-y-1">
             {data.keyPoints.slice(0, revealCount).map((point, i) => (
               <li
@@ -102,7 +105,7 @@ export function ResultCard({ data, className, skipTypewriter = false }: ResultCa
             className="flex-1 text-xs transition-all hover:text-teal-600 hover:border-teal-500/30 hover:bg-teal-500/10 px-2.5 cursor-pointer"
           >
             <MessageCircle className="w-3.5 h-3.5 mr-1.5 shrink-0 text-muted-foreground/80" />
-            Tanya
+            {t("result.ask")}
           </Button>
 
           <ShareDialog
@@ -111,7 +114,7 @@ export function ResultCard({ data, className, skipTypewriter = false }: ResultCa
             trigger={
               <Button variant="outline" size="sm" className="flex-1 text-xs transition-all cursor-pointer">
                 <Share2 className="w-3.5 h-3.5 mr-1.5 shrink-0 text-muted-foreground/80" />
-                Share
+                {t("result.shareLabel")}
               </Button>
             }
           />

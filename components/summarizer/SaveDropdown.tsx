@@ -15,11 +15,14 @@ import {
 import { Bookmark, Check, Loader2, Inbox, Lock } from "lucide-react"
 import { SummaryResult } from "@/types/summary"
 
+import { useLanguage } from "@/components/providers/LanguageProvider"
+
 interface SaveDropdownProps {
   data: SummaryResult & { _id?: string; collectionId?: string; originalText?: string }
 }
 
 export function SaveDropdown({ data }: SaveDropdownProps) {
+  const { t } = useLanguage()
   const { isLoading, isAuthenticated } = useConvexAuth()
   const collections = useQuery(api.collections.list)
   const saveSummary = useMutation(api.summaries.save)
@@ -45,14 +48,14 @@ export function SaveDropdown({ data }: SaveDropdownProps) {
 
   const currentCollection = collections?.find(c => c._id === currentCollectionId)
   const folderName = currentCollectionId === "uncategorized" || !currentCollectionId
-    ? "Tanpa Kategori"
+    ? t("col.uncategorized")
     : currentCollection?.name || "Folder"
 
   const handleSave = async (colId: string) => {
     setSaveLoading(true)
     const targetCollection = collections?.find(c => c._id === colId)
     const targetFolderName = colId === "uncategorized"
-      ? "Tanpa Kategori"
+      ? t("col.uncategorized")
       : targetCollection?.name || "Folder"
 
     try {
@@ -65,7 +68,7 @@ export function SaveDropdown({ data }: SaveDropdownProps) {
           collectionId: selectedColId,
         })
         setLocalSavedCollectionId(colId)
-        toast.success(`Ringkasan dipindahkan ke "${targetFolderName}"`)
+        toast.success(t("col.moveSuccess").replace("{folder}", targetFolderName))
       } else {
         // Save new summary
         const newId = await saveSummary({
@@ -80,10 +83,10 @@ export function SaveDropdown({ data }: SaveDropdownProps) {
         })
         setSavedId(newId)
         setLocalSavedCollectionId(colId)
-        toast.success(`Ringkasan berhasil disimpan ke "${targetFolderName}"`)
+        toast.success(t("col.saveSuccess").replace("{folder}", targetFolderName))
       }
     } catch (err) {
-      toast.error(`Gagal menyimpan: ${err instanceof Error ? err.message : "Terjadi kesalahan"}`)
+      toast.error(t("col.saveError").replace("{error}", err instanceof Error ? err.message : "Error"))
       console.error("Gagal menyimpan ringkasan:", err)
     } finally {
       setSaveLoading(false)
@@ -100,7 +103,7 @@ export function SaveDropdown({ data }: SaveDropdownProps) {
       >
         <Link href="/sign-in">
           <Lock className="w-3.5 h-3.5 mr-1.5 shrink-0 text-muted-foreground/75" />
-          Simpan
+          {t("result.save")}
         </Link>
       </Button>
     )
@@ -127,13 +130,13 @@ export function SaveDropdown({ data }: SaveDropdownProps) {
             <Bookmark className="w-3.5 h-3.5 mr-1.5 text-muted-foreground/75 shrink-0" />
           )}
           <span className="truncate">
-            {isSaved ? folderName : "Simpan"}
+            {isSaved ? folderName : t("result.save")}
           </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[200px]">
         <div className="px-2.5 py-1.5 text-[10px] uppercase font-bold text-muted-foreground">
-          {isSaved ? "Pindahkan ke" : "Simpan ke"}
+          {isSaved ? t("col.moveTo") : t("col.saveTo")}
         </div>
         <DropdownMenuItem
           onClick={() => handleSave("uncategorized")}
@@ -142,7 +145,7 @@ export function SaveDropdown({ data }: SaveDropdownProps) {
           }`}
         >
           <Inbox className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
-          Tanpa Kategori
+          {t("col.uncategorized")}
         </DropdownMenuItem>
         {collections && collections.length > 0 && (
           <>

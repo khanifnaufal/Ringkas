@@ -55,12 +55,15 @@ interface CollectionsSidebarProps {
   onToggleCollapse?: () => void
 }
 
+import { useLanguage } from "@/components/providers/LanguageProvider"
+
 export function CollectionsSidebar({
   onSelectSummary,
   activeSummaryId,
   isCollapsed = false,
   onToggleCollapse
 }: CollectionsSidebarProps) {
+  const { t } = useLanguage()
   const { isLoading, isAuthenticated } = useConvexAuth()
   const collections = useQuery(api.collections.list)
   const createCollection = useMutation(api.collections.create)
@@ -119,12 +122,12 @@ export function CollectionsSidebar({
         name: newColName.trim(),
         emoji: selectedEmoji
       })
-      toast.success(`Koleksi "${newColName.trim()}" berhasil dibuat`)
+      toast.success(t("col.createSuccess").replace("{name}", newColName.trim()))
       setNewColName("")
       setIsCreating(false)
     } catch (err) {
       console.error("Gagal membuat koleksi:", err)
-      toast.error(`Gagal membuat koleksi: ${err instanceof Error ? err.message : "Terjadi kesalahan"}`)
+      toast.error(t("col.createError").replace("{error}", err instanceof Error ? err.message : "Error"))
     } finally {
       setCreateLoading(false)
     }
@@ -143,13 +146,13 @@ export function CollectionsSidebar({
     try {
       if (type === "collection") {
         await removeCollection({ id: id as any })
-        toast.success(`Koleksi "${name}" berhasil dihapus beserta semua ringkasannya`)
+        toast.success(t("col.deleteSuccess").replace("{name}", name))
       } else {
         await removeSummary({ id: id as any })
-        toast.success(`Ringkasan "${name}" berhasil dihapus`)
+        toast.success(t("history.deleteSuccess").replace("{name}", name))
       }
     } catch (err) {
-      toast.error(`Gagal menghapus: ${err instanceof Error ? err.message : "Terjadi kesalahan"}`)
+      toast.error(t("col.deleteError").replace("{error}", err instanceof Error ? err.message : "Error"))
     }
   }
 
@@ -158,7 +161,7 @@ export function CollectionsSidebar({
 
     const targetCollection = collections?.find(c => c._id === targetCollectionId)
     const targetFolderName = targetCollectionId === "uncategorized"
-      ? "Tanpa Kategori"
+      ? t("col.uncategorized")
       : targetCollection?.name || "Folder"
 
     try {
@@ -166,9 +169,9 @@ export function CollectionsSidebar({
         id: summaryId as any,
         collectionId: selectedColId,
       })
-      toast.success(`Ringkasan dipindahkan ke "${targetFolderName}"`)
+      toast.success(t("col.moveSuccess").replace("{folder}", targetFolderName))
     } catch (err) {
-      toast.error(`Gagal memindahkan: ${err instanceof Error ? err.message : "Terjadi kesalahan"}`)
+      toast.error(t("col.moveError").replace("{error}", err instanceof Error ? err.message : "Error"))
       console.error("Gagal memindahkan ringkasan:", err)
     }
   }
@@ -204,7 +207,7 @@ export function CollectionsSidebar({
                   size="icon"
                   onClick={onToggleCollapse}
                   className="w-8 h-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
-                  title="Buka Koleksi"
+                  title={t("col.openCol")}
                 >
                   <ChevronRight className="w-4 h-4" />
                 </Button>
@@ -214,7 +217,7 @@ export function CollectionsSidebar({
               <div className="flex-1 flex flex-col items-center justify-center my-auto">
                 <button
                   onClick={onToggleCollapse}
-                  title="Fitur Koleksi Terkunci (Klik untuk masuk)"
+                  title={t("col.lockedTooltip")}
                   className="w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary/20 hover:scale-105 transition-all shadow-md"
                 >
                   <Lock className="w-4 h-4" />
@@ -242,7 +245,7 @@ export function CollectionsSidebar({
                     size="icon"
                     onClick={onToggleCollapse}
                     className="w-7 h-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
-                    title="Sembunyikan Koleksi"
+                    title={t("col.hideCol")}
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </Button>
@@ -252,7 +255,7 @@ export function CollectionsSidebar({
               {/* Faux Collections List */}
               <div className="opacity-15 space-y-4 select-none pointer-events-none w-full">
                 <div className="flex justify-between items-center pb-2 border-b border-border/30">
-                  <span className="font-semibold text-xs tracking-wider uppercase">Koleksi Saya</span>
+                  <span className="font-semibold text-xs tracking-wider uppercase">{t("col.sidebarTitle")}</span>
                   <div className="w-5 h-5 bg-foreground rounded" />
                 </div>
                 <div className="space-y-2">
@@ -274,12 +277,12 @@ export function CollectionsSidebar({
                 <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 text-primary animate-pulse shadow-md">
                   <Lock className="w-5 h-5" />
                 </div>
-                <h3 className="text-base font-semibold text-foreground mb-1.5">Fitur Koleksi Terkunci</h3>
+                <h3 className="text-base font-semibold text-foreground mb-1.5">{t("col.lockedTitle")}</h3>
                 <p className="text-xs text-muted-foreground max-w-[240px] leading-relaxed mb-5">
-                  Masuk untuk menyimpan ringkasan Anda secara permanen dan mengaturnya ke dalam berbagai kategori.
+                  {t("col.lockedDesc")}
                 </p>
                 <Button asChild size="sm" className="font-medium shadow-md w-full max-w-[180px] bg-primary text-primary-foreground hover:bg-primary/90 transition-all active:scale-[0.98]">
-                  <Link href="/sign-in">Masuk Sekarang</Link>
+                  <Link href="/sign-in">{t("col.signInNow")}</Link>
                 </Button>
               </div>
 
@@ -305,7 +308,7 @@ export function CollectionsSidebar({
       >
         <Loader2 className="w-8 h-8 text-primary animate-spin mb-2" />
         {!isCollapsed && (
-          <span className="text-xs text-muted-foreground animate-pulse">Memuat koleksi...</span>
+          <span className="text-xs text-muted-foreground animate-pulse">{t("col.loading")}</span>
         )}
       </motion.div>
     )
@@ -337,7 +340,7 @@ export function CollectionsSidebar({
                 size="icon"
                 onClick={onToggleCollapse}
                 className="w-8 h-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
-                title="Buka Koleksi"
+                title={t("col.openCol")}
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
@@ -352,7 +355,7 @@ export function CollectionsSidebar({
                 onToggleCollapse?.()
               }}
               className="w-8 h-8 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted mt-2 shrink-0"
-              title="Koleksi Baru..."
+              title={t("col.newFolder")}
             >
               <Plus className="w-4 h-4" />
             </Button>
@@ -366,7 +369,7 @@ export function CollectionsSidebar({
                   onToggleCollapse?.()
                 }}
                 className="group relative w-10 h-10 rounded-xl bg-muted/40 hover:bg-primary/10 border border-transparent hover:border-primary/20 flex items-center justify-center text-sm transition-all hover:scale-105 active:scale-95 shrink-0 cursor-pointer"
-                title={`Tanpa Kategori (${uncategorizedCount} ringkasan)`}
+                title={`${t("col.uncategorized")} (${uncategorizedCount} ${t("nav.history").toLowerCase()})`}
               >
                 📥
                 {uncategorizedCount > 0 && (
@@ -387,7 +390,7 @@ export function CollectionsSidebar({
                       onToggleCollapse?.()
                     }}
                     className="group relative w-10 h-10 rounded-xl bg-muted/45 hover:bg-primary/10 border border-transparent hover:border-primary/20 flex items-center justify-center text-sm transition-all hover:scale-105 active:scale-95 shrink-0 cursor-pointer"
-                    title={`${col.name} (${count} ringkasan)`}
+                    title={`${col.name} (${count} ${t("nav.history").toLowerCase()})`}
                   >
                     {col.emoji}
                     {count > 0 && (
@@ -413,7 +416,7 @@ export function CollectionsSidebar({
             <div className="flex items-center justify-between pb-3 border-b border-border/60">
               <div className="flex items-center gap-2">
                 <Layers className="w-4 h-4 text-primary" />
-                <span className="font-semibold text-sm tracking-tight text-foreground">Koleksi Saya</span>
+                <span className="font-semibold text-sm tracking-tight text-foreground">{t("col.sidebarTitle")}</span>
               </div>
               {onToggleCollapse && (
                 <Button
@@ -421,7 +424,7 @@ export function CollectionsSidebar({
                   size="icon"
                   onClick={onToggleCollapse}
                   className="w-7 h-7 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
-                  title="Sembunyikan Koleksi"
+                  title={t("col.hideCol")}
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
@@ -432,11 +435,11 @@ export function CollectionsSidebar({
             {isCreating ? (
               <form onSubmit={handleCreateCollection} className="mt-3 p-3 border border-primary/20 rounded-xl bg-muted/20 space-y-3 animate-in slide-in-from-top-2 duration-200">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground">Nama Koleksi</label>
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground">{t("col.folderName")}</label>
                   <input
                     type="text"
                     required
-                    placeholder="Contoh: Skripsi, Riset AI..."
+                    placeholder={t("col.placeholder")}
                     value={newColName}
                     onChange={(e) => setNewColName(e.target.value)}
                     className="w-full h-8 px-2.5 rounded-lg border border-border bg-background text-xs text-foreground focus:outline-none focus:border-primary/50"
@@ -444,7 +447,7 @@ export function CollectionsSidebar({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-[10px] uppercase font-bold text-muted-foreground">Pilih Ikon</label>
+                  <label className="text-[10px] uppercase font-bold text-muted-foreground">{t("col.selectIcon")}</label>
                   <div className="grid grid-cols-5 gap-1">
                     {EMOJIS.map(emoji => (
                       <button
@@ -469,7 +472,7 @@ export function CollectionsSidebar({
                     onClick={() => setIsCreating(false)}
                     className="h-7 px-2.5 text-[11px]"
                   >
-                    Batal
+                    {t("col.cancel")}
                   </Button>
                   <Button
                     type="submit"
@@ -477,7 +480,7 @@ export function CollectionsSidebar({
                     disabled={createLoading || !newColName.trim()}
                     className="h-7 px-2.5 text-[11px] bg-primary text-primary-foreground hover:bg-primary/90"
                   >
-                    {createLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Buat"}
+                    {createLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : t("col.create")}
                   </Button>
                 </div>
               </form>
@@ -489,7 +492,7 @@ export function CollectionsSidebar({
                 className="w-full mt-2 justify-start text-muted-foreground hover:text-foreground text-xs h-8"
               >
                 <Plus className="w-3.5 h-3.5 mr-2" />
-                Koleksi Baru...
+                {t("col.newFolder")}...
               </Button>
             )}
 
@@ -498,7 +501,7 @@ export function CollectionsSidebar({
               {/* ── Uncategorized Collection ──────────────────────────────────────── */}
               <FolderItem
                 collectionId="uncategorized"
-                name="Tanpa Kategori"
+                name={t("col.uncategorized")}
                 emoji="📥"
                 isExpanded={!!expandedFolders.uncategorized}
                 onToggle={() => toggleFolder("uncategorized")}
@@ -512,7 +515,7 @@ export function CollectionsSidebar({
               {collections.length === 0 ? (
                 <div className="py-8 px-4 text-center border-2 border-dashed border-border/40 rounded-xl bg-muted/5 mt-2">
                   <Folder className="w-6 h-6 text-muted-foreground/30 mx-auto mb-2" />
-                  <p className="text-[11px] text-muted-foreground">Belum ada folder koleksi.</p>
+                  <p className="text-[11px] text-muted-foreground">{t("col.empty")}</p>
                 </div>
               ) : (
                 collections.map(col => (
@@ -540,18 +543,18 @@ export function CollectionsSidebar({
       <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Hapus data?</AlertDialogTitle>
+            <AlertDialogTitle>{t("col.deleteTitle")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Data yang sudah dihapus tidak dapat dikembalikan.
+              {t("col.deleteDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogCancel>{t("col.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Hapus
+              {t("col.deleteAction")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

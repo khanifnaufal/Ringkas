@@ -6,6 +6,8 @@ import { LengthSelector } from "@/components/summarizer/LengthSelector"
 import { SummaryLength } from "@/types/summary"
 import { AlertCircle, Loader2 } from "lucide-react"
 
+import { useLanguage } from "@/components/providers/LanguageProvider"
+
 interface TextInputPanelProps {
   text: string
   onTextChange: (v: string) => void
@@ -29,10 +31,12 @@ export function TextInputPanel({
   error,
   onSubmit,
 }: TextInputPanelProps) {
+  const { t } = useLanguage()
+
   return (
     <div className="flex flex-col gap-4 w-full">
       <Textarea
-        placeholder="Paste teks di sini — artikel, email, laporan, atau apapun yang ingin diringkas…"
+        placeholder={t("text.placeholder")}
         className="min-h-[250px] md:min-h-[300px] resize-y text-base focus-visible:ring-primary/50"
         value={text}
         onChange={(e) => onTextChange(e.target.value)}
@@ -49,10 +53,10 @@ export function TextInputPanel({
         {loading ? (
           <>
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Meringkas…
+            {t("text.buttonLoading")}
           </>
         ) : (
-          "Ringkas Sekarang"
+          t("text.button")
         )}
       </Button>
 

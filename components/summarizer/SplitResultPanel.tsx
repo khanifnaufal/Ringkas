@@ -22,6 +22,8 @@ interface SplitResultPanelProps {
   onNewSummary: () => void
 }
 
+import { useLanguage } from "@/components/providers/LanguageProvider"
+
 export const SplitResultPanel = ({
   urlResults,
   selectedUrl,
@@ -33,6 +35,7 @@ export const SplitResultPanel = ({
   selectedResult,
   onNewSummary,
 }: SplitResultPanelProps) => {
+  const { t } = useLanguage()
   const successfulResults = React.useMemo(() => {
     return urlResults.filter((r) => r.success && r.data)
   }, [urlResults])
@@ -76,7 +79,7 @@ export const SplitResultPanel = ({
               transition={{ type: "spring", stiffness: 380, damping: 30 }}
             />
           )}
-          <span className="relative z-10">Daftar Artikel ({urlResults.length})</span>
+          <span className="relative z-10">{t("result.articleList")} ({urlResults.length})</span>
         </button>
         <button
           onClick={() => setActiveTab("detail")}
@@ -91,7 +94,7 @@ export const SplitResultPanel = ({
               transition={{ type: "spring", stiffness: 380, damping: 30 }}
             />
           )}
-          <span className="relative z-10">Detail Ringkasan</span>
+          <span className="relative z-10">{t("result.detailTab")}</span>
         </button>
         {successCount >= 2 && (
           <button
@@ -107,7 +110,7 @@ export const SplitResultPanel = ({
                 transition={{ type: "spring", stiffness: 380, damping: 30 }}
               />
             )}
-            <span className="relative z-10">Bandingkan</span>
+            <span className="relative z-10">{t("result.compare")}</span>
           </button>
         )}
       </div>
@@ -120,7 +123,7 @@ export const SplitResultPanel = ({
             <div className="flex items-center justify-between border-b pb-2">
               <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-primary" />
-                Hasil ({successCount} berhasil / {failCount} gagal)
+                {t("result.splitResultHeader").replace("{successCount}", String(successCount)).replace("{failCount}", String(failCount))}
               </h3>
             </div>
 
@@ -144,7 +147,7 @@ export const SplitResultPanel = ({
               className="w-full text-xs font-semibold h-10 border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 transition-all shadow-sm mt-3"
             >
               <Plus className="w-4 h-4 mr-2" />
-              Mulai Ringkasan Baru
+              {t("result.newSummary")}
             </Button>
           </div>
         ) : activeTab === "detail" ? (
@@ -156,7 +159,7 @@ export const SplitResultPanel = ({
               className="flex items-center gap-1.5 text-xs font-bold text-primary mb-3.5 hover:underline text-left self-start cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
-              Kembali ke Daftar Artikel
+              {t("result.backToList")}
             </button>
 
             {selectedResult ? (
@@ -197,10 +200,10 @@ export const SplitResultPanel = ({
                     <div className="flex flex-col items-center justify-center text-center p-8 border border-destructive/20 bg-destructive/5 rounded-xl text-destructive gap-3 my-4">
                       <AlertTriangle className="w-9 h-9 text-destructive/80" />
                       <div className="space-y-1">
-                        <h4 className="font-semibold text-sm">Gagal Meringkas Artikel</h4>
+                        <h4 className="font-semibold text-sm">{t("result.failSingleUrl")}</h4>
                         <p className="text-xs text-destructive/85 max-w-sm leading-relaxed mx-auto">
                           {selectedResult.error ||
-                            "Terjadi kesalahan saat mencoba memuat atau memproses halaman web ini."}
+                            t("result.failSingleUrlDesc")}
                         </p>
                       </div>
                     </div>
@@ -210,7 +213,7 @@ export const SplitResultPanel = ({
             ) : (
               <div className="border border-dashed border-border/60 rounded-xl p-8 flex flex-col items-center justify-center text-muted-foreground text-sm min-h-[350px] bg-muted/10 h-full">
                 <BookOpen className="mb-3.5 text-muted-foreground/35 w-10 h-10" />
-                <p className="text-center font-medium">Pilih artikel dari daftar untuk melihat detail</p>
+                <p className="text-center font-medium">{t("result.selectArticleDetail")}</p>
               </div>
             )}
           </div>
@@ -222,7 +225,7 @@ export const SplitResultPanel = ({
               <div className="flex items-center justify-between gap-4 flex-wrap">
                 <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-primary" />
-                  Pilih 2 Artikel untuk Dibandingkan
+                  {t("result.selectCompare")}
                 </h4>
                 {selectedCompareUrls.length === 2 && (
                   <Button
@@ -232,7 +235,7 @@ export const SplitResultPanel = ({
                     className="h-8 text-xs font-medium border-primary/20 bg-primary/5 text-primary hover:bg-primary/10 cursor-pointer shadow-sm animate-in fade-in duration-200"
                   >
                     <BarChart2 className="w-3.5 h-3.5 mr-1.5" />
-                    {showStats ? "Tampilkan Konten Ringkas" : "Visualisasi Perbedaan"}
+                    {showStats ? t("result.showSummaryContent") : t("result.visualizeDiff")}
                   </Button>
                 )}
               </div>
@@ -276,12 +279,12 @@ export const SplitResultPanel = ({
                 <div className="border border-border/80 rounded-xl bg-card shadow-sm p-5 flex flex-col gap-4 animate-in fade-in duration-300">
                   <h3 className="text-sm font-bold text-foreground flex items-center gap-1.5 border-b pb-2.5">
                     <BarChart2 className="w-4 h-4 text-primary" />
-                    Statistik Perbandingan Metadata
+                    {t("result.compareStats")}
                   </h3>
                   <div className="divide-y divide-border/60">
                     {/* Title Row */}
                     <div className="grid grid-cols-3 py-3 items-start gap-4">
-                      <div className="text-xs font-semibold text-muted-foreground">Parameter</div>
+                      <div className="text-xs font-semibold text-muted-foreground">{t("result.parameter")}</div>
                       <div className="text-xs font-bold text-foreground break-words line-clamp-2">
                         {getArticleTitle(selectedCompareUrls[0])}
                       </div>
@@ -292,28 +295,34 @@ export const SplitResultPanel = ({
 
                     {/* Kategori */}
                     <div className="grid grid-cols-3 py-3 items-center gap-4">
-                      <div className="text-xs font-semibold text-muted-foreground">Kategori</div>
+                      <div className="text-xs font-semibold text-muted-foreground">{t("result.category")}</div>
                       <div>
                         <span className="text-xs px-2 py-0.5 rounded-full border border-border bg-background font-medium">
-                          {successfulResults.find((r) => r.url === selectedCompareUrls[0])?.data?.category}
+                          {(() => {
+                            const cat = successfulResults.find((r) => r.url === selectedCompareUrls[0])?.data?.category
+                            return cat ? t(`cat.${cat}`) : ""
+                          })()}
                         </span>
                       </div>
                       <div>
                         <span className="text-xs px-2 py-0.5 rounded-full border border-border bg-background font-medium">
-                          {successfulResults.find((r) => r.url === selectedCompareUrls[1])?.data?.category}
+                          {(() => {
+                            const cat = successfulResults.find((r) => r.url === selectedCompareUrls[1])?.data?.category
+                            return cat ? t(`cat.${cat}`) : ""
+                          })()}
                         </span>
                       </div>
                     </div>
 
                     {/* Sentimen */}
                     <div className="grid grid-cols-3 py-3 items-center gap-4">
-                      <div className="text-xs font-semibold text-muted-foreground">Sentimen</div>
+                      <div className="text-xs font-semibold text-muted-foreground">{t("result.sentiment")}</div>
                       <div>
                         {(() => {
                           const sentiment = successfulResults.find((r) => r.url === selectedCompareUrls[0])?.data?.sentiment
                           return sentiment ? (
                             <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${SENTIMENT_COLORS[sentiment] || ""}`}>
-                              {sentiment}
+                              {t(`result.sentiment.${sentiment}`)}
                             </span>
                           ) : null
                         })()}
@@ -323,7 +332,7 @@ export const SplitResultPanel = ({
                           const sentiment = successfulResults.find((r) => r.url === selectedCompareUrls[1])?.data?.sentiment
                           return sentiment ? (
                             <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${SENTIMENT_COLORS[sentiment] || ""}`}>
-                              {sentiment}
+                              {t(`result.sentiment.${sentiment}`)}
                             </span>
                           ) : null
                         })()}
@@ -332,23 +341,29 @@ export const SplitResultPanel = ({
 
                     {/* Waktu Baca */}
                     <div className="grid grid-cols-3 py-3 items-center gap-4">
-                      <div className="text-xs font-semibold text-muted-foreground">Waktu Baca</div>
+                      <div className="text-xs font-semibold text-muted-foreground">{t("result.readingTime")}</div>
                       <div className="text-xs font-medium text-foreground">
-                        ~{successfulResults.find((r) => r.url === selectedCompareUrls[0])?.data?.readingTime} menit
+                        {(() => {
+                          const time = successfulResults.find((r) => r.url === selectedCompareUrls[0])?.data?.readingTime
+                          return time !== undefined ? t("result.readingTimeLabel").replace("{time}", String(time)) : ""
+                        })()}
                       </div>
                       <div className="text-xs font-medium text-foreground">
-                        ~{successfulResults.find((r) => r.url === selectedCompareUrls[1])?.data?.readingTime} menit
+                        {(() => {
+                          const time = successfulResults.find((r) => r.url === selectedCompareUrls[1])?.data?.readingTime
+                          return time !== undefined ? t("result.readingTimeLabel").replace("{time}", String(time)) : ""
+                        })()}
                       </div>
                     </div>
 
                     {/* Jumlah Poin Penting */}
                     <div className="grid grid-cols-3 py-3 items-center gap-4">
-                      <div className="text-xs font-semibold text-muted-foreground">Jumlah Poin Penting</div>
+                      <div className="text-xs font-semibold text-muted-foreground">{t("result.keyPointCount")}</div>
                       <div className="text-xs font-medium text-foreground">
-                        {successfulResults.find((r) => r.url === selectedCompareUrls[0])?.data?.keyPoints.length || 0} poin
+                        {t("result.pointsLabel").replace("{count}", String(successfulResults.find((r) => r.url === selectedCompareUrls[0])?.data?.keyPoints.length || 0))}
                       </div>
                       <div className="text-xs font-medium text-foreground">
-                        {successfulResults.find((r) => r.url === selectedCompareUrls[1])?.data?.keyPoints.length || 0} poin
+                        {t("result.pointsLabel").replace("{count}", String(successfulResults.find((r) => r.url === selectedCompareUrls[1])?.data?.keyPoints.length || 0))}
                       </div>
                     </div>
                   </div>
@@ -370,7 +385,7 @@ export const SplitResultPanel = ({
                         <div className="bg-muted/30 border-b border-border/80 px-4 py-3 flex flex-col gap-1">
                           <div className="flex items-center justify-between gap-2">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-primary">
-                              Kolom {index + 1}
+                              {t("result.column").replace("{index}", String(index + 1))}
                             </span>
                             <a
                               href={res.url}
@@ -411,7 +426,7 @@ export const SplitResultPanel = ({
               <div className="border border-dashed border-border/60 rounded-xl p-8 flex flex-col items-center justify-center text-muted-foreground text-sm min-h-[300px] bg-muted/10 h-full">
                 <BookOpen className="mb-3.5 text-muted-foreground/35 w-10 h-10" />
                 <p className="text-center font-medium">
-                  Silakan pilih {2 - selectedCompareUrls.length} artikel lagi dari daftar di atas untuk mulai membandingkan.
+                  {t("result.selectMoreCompare").replace("{count}", String(2 - selectedCompareUrls.length))}
                 </p>
               </div>
             )}

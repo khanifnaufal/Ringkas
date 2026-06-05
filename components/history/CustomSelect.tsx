@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react"
 import { ChevronDown } from "lucide-react"
+import { useLanguage } from "@/components/providers/LanguageProvider"
 
 interface CustomSelectProps {
   value: string
@@ -14,6 +15,7 @@ interface CustomSelectProps {
 export function CustomSelect({ value, onChange, options, widthClass = "w-[140px]", placeholder }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const { t } = useLanguage()
 
   const selectedOption = options.find(opt => opt.value === value)
 
@@ -34,7 +36,7 @@ export function CustomSelect({ value, onChange, options, widthClass = "w-[140px]
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center justify-between w-full h-8 px-3 py-1.5 text-xs rounded-md border border-border bg-card text-foreground shadow-xs hover:bg-muted/50 transition-colors focus:outline-none focus:ring-1 focus:ring-ring cursor-pointer"
       >
-        <span className="truncate capitalize">{selectedOption ? selectedOption.label : (placeholder ?? "Pilih")}</span>
+        <span className="truncate capitalize">{selectedOption ? selectedOption.label : (placeholder ?? t("col.selectIcon").split(" ")[0])}</span>
         <ChevronDown className="w-3.5 h-3.5 text-muted-foreground/80 shrink-0 ml-1.5" />
       </button>
 

@@ -7,6 +7,7 @@ import { Id } from "@/convex/_generated/dataModel"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { SENTIMENT_COLORS } from "@/lib/constants"
+import { useLanguage } from "@/components/providers/LanguageProvider"
 import { AskPanel } from "./AskPanel"
 import {
   FileText,
@@ -43,9 +44,9 @@ interface HistoryCardProps {
   onDelete: (id: string, title: string) => void
 }
 
-function formatDate(ts: number): string {
+function formatDate(ts: number, lang: string): string {
   const d = new Date(ts)
-  return d.toLocaleDateString("id-ID", {
+  return d.toLocaleDateString(lang === "id" ? "id-ID" : "en-US", {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -54,6 +55,7 @@ function formatDate(ts: number): string {
 
 export function HistoryCard({ item, collectionName, onOpen, onDelete }: HistoryCardProps) {
   const [askOpen, setAskOpen] = useState(false)
+  const { t, uiLanguage } = useLanguage()
 
   // Fetch full document only when the dialog is opened ("skip" pattern)
   const summaryDoc = useQuery(
@@ -90,19 +92,19 @@ export function HistoryCard({ item, collectionName, onOpen, onDelete }: HistoryC
 
             <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
               <Badge variant="outline" className="text-xs h-5 px-2 capitalize font-normal">
-                {item.category}
+                {t("cat." + item.category.toLowerCase()) || item.category}
               </Badge>
               <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${sentimentClass}`}>
-                {item.sentiment}
+                {t("result.sentiment." + item.sentiment.toLowerCase()) || item.sentiment}
               </span>
               {isPdf && (
                 <span className="text-xs px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400 font-medium">
-                  {item.pdfMeta!.pages} Halaman
+                  {item.pdfMeta!.pages} {t("pdf.pages").charAt(0).toUpperCase() + t("pdf.pages").slice(1)}
                 </span>
               )}
               <span className="flex items-center gap-0.5 text-xs text-muted-foreground ml-auto">
                 <Clock className="w-3 h-3" />
-                ~{item.readingTime} menit
+                ~{item.readingTime} {t("history.minutesText")}
               </span>
             </div>
           </div>
@@ -119,7 +121,7 @@ export function HistoryCard({ item, collectionName, onOpen, onDelete }: HistoryC
           <div className="flex items-center gap-3 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
               <Calendar className="w-3.5 h-3.5" />
-              {formatDate(item.createdAt)}
+              {formatDate(item.createdAt, uiLanguage)}
             </span>
             {collectionName && (
               <span className="flex items-center gap-1">
@@ -140,14 +142,14 @@ export function HistoryCard({ item, collectionName, onOpen, onDelete }: HistoryC
               className="h-7 px-2.5 text-[11px] gap-1 cursor-pointer text-muted-foreground hover:text-teal-600 hover:bg-teal-500/10"
             >
               <MessageCircle className="w-3 h-3" />
-              Tanya
+              {t("result.ask")}
             </Button>
 
             {/* Delete */}
             <button
               id={`history-delete-${item._id}`}
               onClick={() => onDelete(item._id, title)}
-              title="Hapus ringkasan"
+              title={t("history.delete")}
               className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all cursor-pointer"
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -162,7 +164,7 @@ export function HistoryCard({ item, collectionName, onOpen, onDelete }: HistoryC
               className="h-7 px-2.5 text-[11px] gap-1 border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50 cursor-pointer"
             >
               <ExternalLink className="w-3 h-3" />
-              Buka
+              {t("history.open")}
             </Button>
           </div>
         </div>
