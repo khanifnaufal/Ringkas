@@ -40,36 +40,6 @@ interface InputPanelProps {
 
 import { useLanguage } from "@/components/providers/LanguageProvider"
 
-interface InputPanelProps {
-  // Mode
-  mode: SummaryMode
-  onModeChange: (v: SummaryMode) => void
-
-  // Text
-  text: string
-  onTextChange: (v: string) => void
-  wordCount: number
-
-  // PDF
-  pdfFile: File | null
-  pdfMeta: PdfMeta | null
-  onPdfReady: (file: File, meta: PdfMeta, text: string) => void
-  onClearPdf: () => void
-
-  // URL
-  urls: string[]
-  onAddUrl: () => void
-  onRemoveUrl: (index: number) => void
-  onUpdateUrl: (index: number, val: string) => void
-
-  // Shared
-  length: SummaryLength
-  onLengthChange: (v: SummaryLength) => void
-  loading: boolean
-  canSubmit: boolean
-  error: string
-  onSubmit: () => void
-}
 
 export function InputPanel({
   mode, onModeChange,
