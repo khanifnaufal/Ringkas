@@ -38,11 +38,8 @@ interface InputPanelProps {
   onSubmit: () => void
 }
 
-const TABS: { value: SummaryMode; label: string; icon: React.ReactNode }[] = [
-  { value: "text", label: "Teks",  icon: <Type  className="w-4 h-4" /> },
-  { value: "pdf",  label: "PDF",   icon: <FileText className="w-4 h-4" /> },
-  { value: "url",  label: "URL",   icon: <Link2 className="w-4 h-4" /> },
-]
+import { useLanguage } from "@/components/providers/LanguageProvider"
+
 
 export function InputPanel({
   mode, onModeChange,
@@ -53,6 +50,14 @@ export function InputPanel({
   loading, canSubmit, error,
   onSubmit,
 }: InputPanelProps) {
+  const { t } = useLanguage()
+
+  const tabs: { value: SummaryMode; label: string; icon: React.ReactNode }[] = [
+    { value: "text", label: t("tab.text"),  icon: <Type  className="w-4 h-4" /> },
+    { value: "pdf",  label: t("tab.pdf"),   icon: <FileText className="w-4 h-4" /> },
+    { value: "url",  label: t("tab.url"),   icon: <Link2 className="w-4 h-4" /> },
+  ]
+
   return (
     <div className="flex flex-col gap-4 w-full">
       {/* ── Mode tab switcher ─────────────────────────────────────── */}
@@ -61,7 +66,7 @@ export function InputPanel({
         aria-label="Mode input"
         className="flex gap-1 p-1 rounded-xl bg-muted/40 border border-border/40"
       >
-        {TABS.map((tab) => (
+        {tabs.map((tab) => (
           <button
             key={tab.value}
             role="tab"

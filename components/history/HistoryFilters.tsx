@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Search, X, ArrowUpDown, Tag, FileText, Smile } from "lucide-react"
 import { CustomSelect } from "./CustomSelect"
+import { useLanguage } from "@/components/providers/LanguageProvider"
 
 export type SortOption = "newest" | "oldest" | "az" | "za"
 export type TypeFilter = "all" | "pdf" | "text"
@@ -37,6 +38,8 @@ export function HistoryFilters({
   resultCount, totalCount,
   onReset,
 }: HistoryFiltersProps) {
+  const { t } = useLanguage()
+
   // Debounce pencarian lokal
   const [localSearch, setLocalSearch] = useState(search)
   useEffect(() => {
@@ -53,20 +56,20 @@ export function HistoryFilters({
 
   // Options lists mapping
   const sortOptions = [
-    { value: "newest", label: "Terbaru" },
-    { value: "oldest", label: "Terlama" },
-    { value: "az", label: "A → Z" },
-    { value: "za", label: "Z → A" },
+    { value: "newest", label: t("history.sort.newest") },
+    { value: "oldest", label: t("history.sort.oldest") },
+    { value: "az", label: t("history.sort.az") },
+    { value: "za", label: t("history.sort.za") },
   ]
 
   const categoryOptions = [
-    { value: "all", label: "Semua Kategori" },
-    ...categories.map(c => ({ value: c, label: c })),
+    { value: "all", label: t("history.filter.allCategories") },
+    ...categories.map(c => ({ value: c, label: t("cat." + c.toLowerCase()) || c })),
   ]
 
   const sentimentOptions = [
-    { value: "all", label: "Semua Sentimen" },
-    ...sentiments.map(s => ({ value: s, label: s })),
+    { value: "all", label: t("history.filter.allSentiments") },
+    ...sentiments.map(s => ({ value: s, label: t("result.sentiment." + s.toLowerCase()) || s })),
   ]
 
   return (
@@ -79,7 +82,7 @@ export function HistoryFilters({
           <input
             id="history-search"
             type="text"
-            placeholder="Cari judul atau isi ringkasan..."
+            placeholder={t("history.searchPlaceholder")}
             value={localSearch}
             onChange={e => setLocalSearch(e.target.value)}
             className="pl-8 h-9 w-full rounded-md border border-border bg-background px-3 py-1 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -117,7 +120,7 @@ export function HistoryFilters({
               onChange={v => onCategoryChange(v === "all" ? "" : v)}
               options={categoryOptions}
               widthClass="w-[140px]"
-              placeholder="Kategori"
+              placeholder={t("history.filter.category")}
             />
           </div>
         )}
@@ -131,26 +134,26 @@ export function HistoryFilters({
               onChange={v => onSentimentChange(v === "all" ? "" : v)}
               options={sentimentOptions}
               widthClass="w-[140px]"
-              placeholder="Sentimen"
+              placeholder={t("history.filter.sentiment")}
             />
           </div>
         )}
 
         {/* Type toggle */}
         <div className="flex items-center gap-1 p-0.5 rounded-lg border border-border bg-muted/30">
-          {(["all", "text", "pdf"] as TypeFilter[]).map(t => (
+          {(["all", "text", "pdf"] as TypeFilter[]).map(tFilter => (
             <button
-              key={t}
-              id={`history-type-${t}`}
-              onClick={() => onTypeFilterChange(t)}
+              key={tFilter}
+              id={`history-type-${tFilter}`}
+              onClick={() => onTypeFilterChange(tFilter)}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
-                typeFilter === t
+                typeFilter === tFilter
                   ? "bg-background text-foreground shadow-xs border border-border"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {t === "pdf" && <FileText className="w-3 h-3" />}
-              {t === "all" ? "Semua" : t === "pdf" ? "PDF" : "Teks"}
+              {tFilter === "pdf" && <FileText className="w-3 h-3" />}
+              {tFilter === "all" ? t("history.filter.all") : tFilter === "pdf" ? t("tab.pdf") : t("tab.text")}
             </button>
           ))}
         </div>
@@ -165,15 +168,15 @@ export function HistoryFilters({
             className="h-8 text-xs text-muted-foreground hover:text-foreground gap-1 ml-auto cursor-pointer"
           >
             <X className="w-3 h-3" />
-            Reset
+            {t("history.clearFilter")}
           </Button>
         )}
 
         {/* Result count */}
         <span className={`text-xs text-muted-foreground ${hasActiveFilter ? "" : "ml-auto"}`}>
           {resultCount !== totalCount
-            ? <><span className="font-medium text-foreground">{resultCount}</span> dari {totalCount} ringkasan</>
-            : <><span className="font-medium text-foreground">{totalCount}</span> ringkasan</>
+            ? t("history.countFiltered").replace("{count}", String(resultCount)).replace("{total}", String(totalCount))
+            : t("history.countTotal").replace("{count}", String(totalCount))
           }
         </span>
       </div>

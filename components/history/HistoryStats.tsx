@@ -3,6 +3,7 @@
 import { BookOpen, Clock, FileText, Type, Tag } from "lucide-react"
 import { useEffect, useState, useRef } from "react"
 import { animate } from "motion/react"
+import { useLanguage } from "@/components/providers/LanguageProvider"
 
 interface HistorySummaryItem {
   _id: string
@@ -44,6 +45,7 @@ function AnimatedNumber({ value, className }: AnimatedNumberProps) {
 }
 
 export function HistoryStats({ summaries, filtered }: HistoryStatsProps) {
+  const { t } = useLanguage()
   const totalTime = filtered.reduce((acc, s) => acc + s.readingTime, 0)
   const pdfCount  = filtered.filter(s => !!s.pdfMeta).length
   const textCount = filtered.filter(s => !s.pdfMeta).length
@@ -65,7 +67,7 @@ export function HistoryStats({ summaries, filtered }: HistoryStatsProps) {
           <BookOpen className="w-4 h-4 text-primary" />
         </div>
         <div>
-          <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wide">Tersimpan</p>
+          <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wide">{t("history.stats.saved")}</p>
           <p className="text-lg font-bold text-foreground leading-tight">
             {isFiltered ? (
               <>
@@ -88,10 +90,10 @@ export function HistoryStats({ summaries, filtered }: HistoryStatsProps) {
           <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
         </div>
         <div>
-          <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wide">Total Baca</p>
+          <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wide">{t("history.stats.totalRead")}</p>
           <p className="text-lg font-bold text-foreground leading-tight">
             <AnimatedNumber value={totalTime} />
-            <span className="text-sm font-normal text-muted-foreground"> mnt</span>
+            <span className="text-sm font-normal text-muted-foreground"> {t("history.minutesText")}</span>
           </p>
         </div>
       </div>
@@ -102,7 +104,7 @@ export function HistoryStats({ summaries, filtered }: HistoryStatsProps) {
           <FileText className="w-4 h-4 text-sky-600 dark:text-sky-400" />
         </div>
         <div>
-          <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wide">PDF / Teks</p>
+          <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wide">{t("history.stats.pdfVsText")}</p>
           <p className="text-lg font-bold text-foreground leading-tight">
             <AnimatedNumber value={pdfCount} />
             <span className="text-sm font-normal text-muted-foreground">
@@ -119,7 +121,7 @@ export function HistoryStats({ summaries, filtered }: HistoryStatsProps) {
           <Tag className="w-4 h-4 text-violet-600 dark:text-violet-400" />
         </div>
         <div className="min-w-0">
-          <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wide">Kategori</p>
+          <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wide">{t("history.stats.categories")}</p>
           <div className="flex flex-wrap gap-1 mt-0.5">
             {topCats.length === 0 ? (
               <span className="text-xs text-muted-foreground">—</span>
@@ -128,7 +130,7 @@ export function HistoryStats({ summaries, filtered }: HistoryStatsProps) {
                 key={cat}
                 className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground capitalize"
               >
-                {cat}
+                {t("cat." + cat.toLowerCase()) || cat}
               </span>
             ))}
           </div>

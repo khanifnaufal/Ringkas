@@ -11,6 +11,12 @@ const LENGTH_MAP: Record<string, string> = {
   detail:  "6-8 kalimat yang komprehensif dan menyeluruh",
 }
 
+const LENGTH_MAP_EN: Record<string, string> = {
+  pendek:  "2-3 very short and concise sentences",
+  sedang:  "4-5 informative and easy to understand sentences",
+  detail:  "6-8 comprehensive and thorough sentences",
+}
+
 function extractCleanText(html: string): string {
   let clean = html
     .replace(/<head[^>]*>[\s\S]*?<\/head>/gi, "")
@@ -214,7 +220,7 @@ function isPrivateHostname(hostname: string): boolean {
 
 export async function POST(req: Request) {
   try {
-    const { urls, length } = await req.json()
+    const { urls, length, language } = await req.json()
 
     if (!urls || !Array.isArray(urls) || urls.length === 0) {
       return Response.json(
@@ -230,7 +236,10 @@ export async function POST(req: Request) {
       )
     }
 
-    const lengthGuide = LENGTH_MAP[length] ?? LENGTH_MAP["sedang"]
+    const lang = language === "en" ? "en" : "id"
+    const lengthGuide = lang === "en"
+      ? (LENGTH_MAP_EN[length] ?? LENGTH_MAP_EN["sedang"])
+      : (LENGTH_MAP[length] ?? LENGTH_MAP["sedang"])
 
     const results = await Promise.all(
       urls.map(async (url: string) => {
@@ -320,7 +329,26 @@ export async function POST(req: Request) {
             throw new Error("Konten teks dari URL terlalu pendek untuk diringkas")
           }
 
-          const prompt = `Kamu adalah asisten analisis web profesional yang menulis dalam Bahasa Indonesia.
+          const prompt = lang === "en"
+            ? `You are a professional web analysis assistant writing in English.
+
+You are summarizing an article from the following web page: "${trimmedUrl}".
+
+INSTRUCTIONS:
+- Summary: write a ${lengthGuide} summary covering the core points of the web article
+- Key points: extract 3-5 of the most important points from the article
+- Category: determine the content type (teknologi, bisnis, sains, hiburan, dll - choose from the strict category list)
+- Sentiment: analyze the overall tone of the article (positif, negatif, or netral)
+- Reading time: estimate based on 200 words per minute of the total text
+
+RULES:
+- Use clear, professional, and natural English
+- Do not add opinions outside the original article
+- Regardless of the article's original language, always write the summary and key points in English
+
+WEB DOCUMENT CONTENT:
+${cleanText.slice(0, 8000)}`
+            : `Kamu adalah asisten analisis web profesional yang menulis dalam Bahasa Indonesia.
 
 Kamu sedang meringkas artikel dari halaman web berikut: "${trimmedUrl}".
 
@@ -329,7 +357,7 @@ INSTRUKSI:
 - Key points: ekstrak 3-5 poin paling penting dari artikel tersebut
 - Kategori: tentukan jenis isi tulisan (teknologi, bisnis, sains, hiburan, dll)
 - Sentimen: analisis nada keseluruhan artikel — positif, negatif, atau netral
-- Waktu baca: estimasi berdasarkan 200 kata per menit dari total teks
+- Waktu baca: ekstrak estimasi berdasarkan 200 kata per menit dari total teks
 
 ATURAN:
 - Gunakan Bahasa Indonesia yang baku, profesional, dan mudah dipahami

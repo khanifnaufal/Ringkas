@@ -7,6 +7,8 @@ import { AlertCircle, Loader2, Plus, Trash2 } from "lucide-react"
 import { motion, AnimatePresence } from "motion/react"
 import { MAX_URLS } from "@/lib/constants"
 
+import { useLanguage } from "@/components/providers/LanguageProvider"
+
 interface UrlInputPanelProps {
   urls: string[]
   onAddUrl: () => void
@@ -32,11 +34,13 @@ export function UrlInputPanel({
   error,
   onSubmit,
 }: UrlInputPanelProps) {
+  const { t } = useLanguage()
+
   return (
     <div className="flex flex-col gap-4 w-full">
       <div className="flex flex-col gap-2.5">
         <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          Masukkan URL Artikel/Web (Maks. {MAX_URLS})
+          {t("url.label").replace("{max}", String(MAX_URLS))}
         </label>
         
         <AnimatePresence initial={false}>
@@ -52,7 +56,7 @@ export function UrlInputPanel({
               <input
                 type="url"
                 required
-                placeholder="https://example.com/artikel-menarik"
+                placeholder={t("url.placeholder")}
                 value={url}
                 onChange={(e) => onUpdateUrl(index, e.target.value)}
                 className="flex-1 h-10 px-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:border-primary/50 text-foreground placeholder:text-muted-foreground/60 transition-colors"
@@ -83,7 +87,7 @@ export function UrlInputPanel({
           className="text-xs h-8 cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5 mr-1" />
-          Tambah URL
+          {t("url.add")}
         </Button>
       </div>
 
@@ -98,10 +102,10 @@ export function UrlInputPanel({
         {loading ? (
           <>
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Meringkas…
+            {t("text.buttonLoading")}
           </>
         ) : (
-          "Ringkas URL Sekarang"
+          t("text.button")
         )}
       </Button>
 

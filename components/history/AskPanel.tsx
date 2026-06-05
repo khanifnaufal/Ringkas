@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog"
 import { MessageCircle, Square, Trash2, Send, X } from "lucide-react"
 import type { UIMessage } from "ai"
+import { useLanguage } from "@/components/providers/LanguageProvider"
 
 interface AskPanelProps {
   open: boolean
@@ -21,13 +22,6 @@ interface AskPanelProps {
   filename?: string
 }
 
-const QUICK_QUESTIONS = [
-  "Apa inti dari teks ini?",
-  "Apa kesimpulan utamanya?",
-  "Sebutkan poin terpenting!",
-  "Apa yang direkomendasikan?",
-]
-
 export function AskPanel({
   open,
   onOpenChange,
@@ -35,6 +29,7 @@ export function AskPanel({
   context,
   filename,
 }: AskPanelProps) {
+  const { t, uiLanguage } = useLanguage()
   const scrollRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const inputRef = useRef("")
@@ -56,11 +51,12 @@ export function AskPanel({
             messageId,
             context: contextRef.current.slice(0, 10000),
             filename,
+            language: uiLanguage,
           },
         }),
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [summaryId]
+    [summaryId, uiLanguage]
   )
 
   const { messages, sendMessage, stop, setMessages, status } = useChat({
@@ -116,7 +112,13 @@ export function AskPanel({
     return ""
   }
 
-  const dialogTitle = filename ?? "Tanya Jawab"
+  const dialogTitle = filename ?? t("qa.title")
+  const quickQuestions = [
+    t("qa.q1"),
+    t("qa.q2"),
+    t("qa.q3"),
+    t("qa.q4"),
+  ]
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -134,7 +136,7 @@ export function AskPanel({
               {dialogTitle}
             </DialogTitle>
             <p className="text-[11px] text-muted-foreground mt-0.5">
-              Tanya apa saja tentang teks ini
+              {t("qa.subtitle")}
             </p>
           </div>
 
@@ -142,7 +144,7 @@ export function AskPanel({
           <div className="flex items-center gap-0.5 shrink-0">
             {hasMessages && (
               <button
-                title="Bersihkan chat"
+                title={t("qa.clearChat")}
                 onClick={() => setMessages([])}
                 className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
               >
@@ -150,7 +152,7 @@ export function AskPanel({
               </button>
             )}
             <button
-              title="Tutup"
+              title={t("qa.close")}
               onClick={() => onOpenChange(false)}
               className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
             >
@@ -175,10 +177,10 @@ export function AskPanel({
                 className="flex flex-col gap-2"
               >
                 <p className="text-xs text-muted-foreground font-medium">
-                  Mulai dengan pertanyaan cepat:
+                  {t("qa.quickStart")}
                 </p>
                 <div className="flex flex-wrap gap-1.5">
-                  {QUICK_QUESTIONS.map((q) => (
+                  {quickQuestions.map((q) => (
                     <button
                       key={q}
                       onClick={() => sendMessage({ text: q })}
@@ -190,7 +192,7 @@ export function AskPanel({
                   ))}
                 </div>
                 <div className="mt-3 rounded-xl bg-muted/50 border border-border/40 px-4 py-3 text-xs text-muted-foreground leading-relaxed">
-                  💡 Jawaban hanya berdasarkan isi teks yang diringkas.
+                  {t("qa.hint")}
                 </div>
               </motion.div>
             )}
@@ -256,7 +258,7 @@ export function AskPanel({
                 syncHeight()
               }}
               onKeyDown={handleKeyDown}
-              placeholder="Ketik pertanyaanmu…"
+              placeholder={t("qa.placeholder")}
               rows={1}
               className="flex-1 resize-none bg-transparent text-sm outline-none placeholder:text-muted-foreground leading-relaxed min-h-[22px]"
             />
@@ -264,7 +266,7 @@ export function AskPanel({
               <button
                 type="button"
                 onClick={() => stop()}
-                title="Hentikan"
+                title={t("qa.stop")}
                 className="shrink-0 p-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors cursor-pointer"
               >
                 <Square className="w-4 h-4" />
@@ -273,7 +275,7 @@ export function AskPanel({
               <button
                 type="button"
                 onClick={handleSend}
-                title="Kirim (Enter)"
+                title={t("qa.send")}
                 className="shrink-0 p-1.5 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
               >
                 <Send className="w-4 h-4" />
@@ -281,7 +283,7 @@ export function AskPanel({
             )}
           </div>
           <p className="text-[10px] text-muted-foreground mt-1.5 text-center">
-            Enter kirim · Shift+Enter baris baru
+            {t("qa.enter")}
           </p>
         </div>
       </DialogContent>

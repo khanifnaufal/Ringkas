@@ -8,6 +8,8 @@ import { LengthSelector } from "@/components/summarizer/LengthSelector"
 import { MAX_PDF_CHARS, MAX_PDF_SIZE_BYTES, MAX_PDF_SIZE_MB } from "@/lib/constants"
 import { FileText, Upload, X, AlertCircle, Loader2 } from "lucide-react"
 
+import { useLanguage } from "@/components/providers/LanguageProvider"
+
 interface PdfUploadPanelProps {
   pdfFile: File | null
   pdfMeta: PdfMeta | null
@@ -33,6 +35,7 @@ export function PdfUploadPanel({
   onClear,
   onSubmit,
 }: PdfUploadPanelProps) {
+  const { t, uiLanguage } = useLanguage()
   const inputRef                  = useRef<HTMLInputElement>(null)
   const [dragging, setDragging]   = useState(false)
   const [sizeError, setSizeError] = useState("")
@@ -41,11 +44,11 @@ export function PdfUploadPanel({
   const processFile = useCallback(async (file: File) => {
     setSizeError("")
     if (file.type !== "application/pdf") {
-      setSizeError("File harus berformat PDF.")
+      setSizeError(t("pdf.errorFormat"))
       return
     }
     if (file.size > MAX_PDF_SIZE_BYTES) {
-      setSizeError(`Ukuran file terlalu besar. Maksimal ${MAX_PDF_SIZE_MB} MB.`)
+      setSizeError(t("pdf.errorSize").replace("{max}", String(MAX_PDF_SIZE_MB)))
       return
     }
     const result = await extractText(file)
@@ -53,7 +56,7 @@ export function PdfUploadPanel({
 
     const truncated = result.text.slice(0, MAX_PDF_CHARS)
     onPdfReady(file, { filename: result.filename, pages: result.pages, chars: truncated.length }, truncated)
-  }, [extractText, onPdfReady])
+  }, [extractText, onPdfReady, t])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -88,13 +91,13 @@ export function PdfUploadPanel({
                 {pdfMeta?.filename}
               </p>
               <div className="flex flex-wrap gap-3 mt-1">
-                <span className="text-xs text-muted-foreground">📄 {pdfMeta?.pages} halaman</span>
+                <span className="text-xs text-muted-foreground">📄 {pdfMeta?.pages} {t("pdf.pages")}</span>
                 <span className="text-xs text-muted-foreground">
-                  🔤 {pdfMeta?.chars?.toLocaleString("id-ID")} / {MAX_PDF_CHARS.toLocaleString("id-ID")} karakter
+                  🔤 {pdfMeta?.chars?.toLocaleString(uiLanguage === "id" ? "id-ID" : "en-US")} / {MAX_PDF_CHARS.toLocaleString(uiLanguage === "id" ? "id-ID" : "en-US")} {t("pdf.chars")}
                 </span>
                 {pdfMeta && pdfMeta.chars >= MAX_PDF_CHARS && (
                   <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
-                    ⚠ Dipotong di {MAX_PDF_CHARS.toLocaleString("id-ID")} karakter
+                    ⚠ {t("pdf.charTruncated").replace("{max}", MAX_PDF_CHARS.toLocaleString(uiLanguage === "id" ? "id-ID" : "en-US"))}
                   </span>
                 )}
               </div>
@@ -103,7 +106,7 @@ export function PdfUploadPanel({
               type="button"
               onClick={onClear}
               disabled={isProcessing}
-              aria-label="Hapus file"
+              aria-label={t("pdf.changeFile")}
               className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
             >
               <X className="w-4 h-4" />
@@ -117,7 +120,7 @@ export function PdfUploadPanel({
           {pdfMeta && (
             <div className="space-y-1 px-1">
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Karakter terbaca</span>
+                <span>{t("pdf.charCount")}</span>
                 <span>{Math.min(100, Math.round((pdfMeta.chars / MAX_PDF_CHARS) * 100))}%</span>
               </div>
               <div className="h-1.5 rounded-full bg-muted overflow-hidden">
@@ -159,7 +162,7 @@ export function PdfUploadPanel({
             {extracting ? (
               <>
                 <Loader2 className="w-10 h-10 text-primary animate-spin" />
-                <p className="text-sm text-muted-foreground font-medium">Membaca PDF…</p>
+                <p className="text-sm text-muted-foreground font-medium">{t("pdf.readingPdf")}</p>
               </>
             ) : (
               <>
@@ -168,10 +171,10 @@ export function PdfUploadPanel({
                 </div>
                 <div className="text-center space-y-1 px-4">
                   <p className="text-sm font-semibold text-foreground">
-                    {dragging ? "Lepaskan file di sini" : "Drag & drop PDF, atau klik untuk pilih"}
+                    {dragging ? t("pdf.dragActive") : t("pdf.dragPlaceholder")}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    Hanya file PDF · Maks. {MAX_PDF_SIZE_MB} MB · {MAX_PDF_CHARS.toLocaleString("id-ID")} karakter
+                  <p className="text-xs text-muted-foreground font-medium">
+                    {t("pdf.subText")}
                   </p>
                 </div>
               </>
@@ -200,13 +203,13 @@ export function PdfUploadPanel({
         className="w-full text-base font-semibold shadow-md transition-all hover:shadow-lg"
       >
         {extracting ? (
-          <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Membaca PDF…</>
+          <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t("pdf.readingPdf")}</>
         ) : loading ? (
-          <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Menganalisis…</>
+          <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{t("pdf.analyzing")}</>
         ) : pdfFile ? (
-          "Analisis PDF"
+          t("pdf.btnAnalyze")
         ) : (
-          "Pilih File PDF"
+          t("pdf.btnSelect")
         )}
       </Button>
 

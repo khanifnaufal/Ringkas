@@ -5,6 +5,8 @@ import { SummaryLength, SummaryResult, SummaryMode, PdfMeta, UrlSummaryResult } 
 import { MIN_TEXT_LENGTH, MAX_URLS } from "@/lib/constants"
 import { toast } from "sonner"
 
+import { useLanguage } from "@/components/providers/LanguageProvider"
+
 interface UseSummarizerReturn {
   // --- Mode ---
   mode: SummaryMode
@@ -43,6 +45,7 @@ interface UseSummarizerReturn {
 }
 
 export function useSummarizer(): UseSummarizerReturn {
+  const { summaryLanguage } = useLanguage()
   const [mode, setMode]       = useState<SummaryMode>("text")
 
   // Text mode
@@ -118,7 +121,7 @@ export function useSummarizer(): UseSummarizerReturn {
         const res = await fetch("/api/summarize-urls", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ urls: activeUrls, length }),
+          body: JSON.stringify({ urls: activeUrls, length, language: summaryLanguage }),
         })
         if (!res.ok) {
           const body = await res.json().catch(() => ({}))
@@ -145,8 +148,9 @@ export function useSummarizer(): UseSummarizerReturn {
                 filename: pdfMeta.filename,
                 pages:    pdfMeta.pages,
                 chars:    pdfMeta.chars,
+                language: summaryLanguage,
               }
-            : { text, length, mode: "text" as const }
+            : { text, length, mode: "text" as const, language: summaryLanguage }
 
         const res = await fetch("/api/summarize", {
           method: "POST",

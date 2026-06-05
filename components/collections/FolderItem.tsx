@@ -12,6 +12,7 @@ import {
   Loader2,
 } from "lucide-react"
 import { motion, AnimatePresence } from "motion/react"
+import { useLanguage } from "@/components/providers/LanguageProvider"
 
 export interface Summary {
   _id: string
@@ -53,6 +54,8 @@ export function FolderItem({
   onMoveSummary,
   activeSummaryId,
 }: FolderItemProps) {
+  const { t } = useLanguage()
+
   // Query summaries inside this folder
   const summaries = useQuery(
     api.summaries.listByCollection,
@@ -130,7 +133,7 @@ export function FolderItem({
         {onDelete && (
           <button
             onClick={onDelete}
-            title="Hapus Koleksi"
+            title={t("col.delete")}
             className="opacity-0 group-hover:opacity-100 hover:text-destructive p-0.5 rounded hover:bg-muted text-muted-foreground/50 transition-all shrink-0 cursor-pointer"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -151,16 +154,16 @@ export function FolderItem({
             {!summaries ? (
               <div className="flex items-center gap-1.5 py-1.5 px-2 text-[10px] text-muted-foreground">
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                Memuat...
+                {t("col.loadingShort")}
               </div>
             ) : count === 0 ? (
               <div className="py-2 px-2 text-[10px] text-muted-foreground/70 italic">
-                Kosong
+                {t("col.emptyFolder")}
               </div>
             ) : (
               summaries.map((summary: any) => {
                 const isPdf = !!summary.pdfMeta
-                const title = summary.pdfMeta?.filename || summary.originalText.slice(0, 24) || "Ringkasan Teks"
+                const title = summary.pdfMeta?.filename || summary.originalText.slice(0, 24) || t("result.textSummary")
                 const isActive = activeSummaryId === summary._id
 
                 return (
@@ -189,7 +192,7 @@ export function FolderItem({
 
                     <button
                       onClick={(e) => handleDeleteSummary(e, summary._id, title)}
-                      title="Hapus Ringkasan"
+                      title={t("history.deleteConfirm")}
                       className="opacity-0 group-hover/item:opacity-100 hover:text-destructive p-0.5 rounded hover:bg-muted text-muted-foreground/50 transition-all shrink-0 cursor-pointer"
                     >
                       <Trash2 className="w-3 h-3" />
